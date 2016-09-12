@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Angular Material style sheet -->
+    <link href="Scripts/AngularMaterial/css/angular-material.min.css" rel="stylesheet" />
+
+    <!-- Angular Material requires Angular.js Libraries -->
+    <script src="Scripts/AngularMaterial/angular.min.js"></script>
+    <script src="Scripts/AngularMaterial/angular-animate.min.js"></script>
+    <script src="Scripts/AngularMaterial/angular-aria.min.js"></script>
+    <script src="Scripts/AngularMaterial/angular-messages.min.js"></script>
+
+    <!-- Angular Material Library -->
+    <script src="Scripts/AngularMaterial/angular-material.min.js"></script>
+
+    <!-- jquery -->
+    <script src="Scripts/jquery-3.1.0.min.js"></script>
+
+    <script src="Scripts/Model.js"></script>
+    <style>
+        * {
+            font-family: 微软雅黑;
+        }
+
+        .ImageList {
+            display: inline-block;
+        }
+    </style>
+
+    <script>
+        $(function () {
+
+        });
+
+        var ImageList = new Array();
+
+
+        //for (var i = 0; i < 10; i++) {
+        //    var model = new ImageListModel();
+        //    model.Src = "http://ul.ehgt.org/45/fe/45fe0950bd7f0f2f259e9cf3d0de2aba9f86a912-880771-850-1200-jpg_l.jpg";
+        //    ImageList.push(model);
+        //}
+
+
+
+        var app = angular.module('myApp', ['ngMaterial']);
+        app.controller('myCtrl', function ($scope) {
+            $scope.ImageList = ImageList;
+        });
+
+        function AddImages(images) {
+            if (images) {
+                ImageList.push(images);
+            }
+        }
+
+    </script>
+
+</head>
+<body>
+    <div ng-app="myApp" ng-controller="myCtrl">
+        <md-button class="md-raised" onclick="AddImages()">添加</md-button>
+
+        <div class="ImageList" style="width: 240px;" ng-repeat="ele in ImageList">
+            <md-card>
+                <md-card-title>
+                    {{ele.Title}}
+                </md-card-title>
+                <md-card-content>
+                    <img src="{{ele.Src}}">
+                </md-card-content>
+            </md-card>
+        </div>
+
+
+    </div>
+
+</body>
+</html>
