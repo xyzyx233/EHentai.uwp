@@ -26,7 +26,7 @@ namespace EHentai.uwp.Model
             get { return _height; }
             set
             {
-                SetProperty(ref _height, value, "Height"); 
+                SetProperty(ref _height, value, "Height");
             }
         }
 
