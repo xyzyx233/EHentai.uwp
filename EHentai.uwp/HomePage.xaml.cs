@@ -125,7 +125,7 @@ namespace EHentai.uwp
                     string pageMax = nodes.SelectNodes("//*[@class=\"ptt\"]/tr/td").Last().PreviousSibling.FirstChild.InnerHtml;
                     PageMax = pageMax.ToInt() - 1;
                 }
-
+                 
                 //获取所需要的元素
                 //var div = document.Find("div[class=\"id3\"]").ToList();
 
