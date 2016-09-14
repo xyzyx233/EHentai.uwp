@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Media;
 
 namespace EHentai.uwp.Common
 {
-    public static class ControlsSearch
+    public static class ControlExtension
     {
 
         /// <summary>
@@ -17,7 +17,7 @@ namespace EHentai.uwp.Common
         /// <param name="obj">当前控件</param>
         /// <param name="name">元素的名称</param>
         /// <returns></returns>
-        public static T GetParentObject<T>(DependencyObject obj, string name = "") where T : FrameworkElement
+        public static T GetParentControl<T>(this DependencyObject obj, string name = "") where T : FrameworkElement
         {
             DependencyObject parent = VisualTreeHelper.GetParent(obj);
 
@@ -40,7 +40,7 @@ namespace EHentai.uwp.Common
         /// <param name="obj">当前控件</param>
         /// <param name="name">元素的名称</param>
         /// <returns></returns>
-        public static T GetChildObject<T>(DependencyObject obj, string name = "") where T : FrameworkElement
+        public static T GetChildControl<T>(this DependencyObject obj, string name = "") where T : FrameworkElement
         {
             for (int i = 0; i <= VisualTreeHelper.GetChildrenCount(obj) - 1; i++)
             {
@@ -52,7 +52,7 @@ namespace EHentai.uwp.Common
                 }
                 else
                 {
-                    var grandChild = GetChildObject<T>(child, name);
+                    var grandChild = child.GetChildControl<T>(name);
                     if (grandChild != null)
                         return grandChild;
                 }
@@ -68,7 +68,7 @@ namespace EHentai.uwp.Common
         /// <param name="obj">当前控件</param>
         /// <param name="name">元素的名称</param>
         /// <returns></returns>
-        public static List<T> GetChildObjects<T>(DependencyObject obj, string name = "") where T : FrameworkElement
+        public static List<T> GetChildControls<T>(this DependencyObject obj, string name = "") where T : FrameworkElement
         {
             List<T> childList = new List<T>();
 
@@ -81,7 +81,7 @@ namespace EHentai.uwp.Common
                     childList.Add((T)child);
                 }
 
-                childList.AddRange(GetChildObjects<T>(child, ""));
+                childList.AddRange(GetChildControls<T>(child, ""));
             }
 
             return childList;

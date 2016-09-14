@@ -17,6 +17,7 @@ namespace EHentai.uwp.Model
             set { _imageUrl = value; GetImageUrl?.Invoke(this, EventArgs.Empty); }
         }
         public string Herf { get; set; }//链接
+        public string Src { get; set; }//图片Base64值
         public EnumLoadState ImageLoadState { get; set; }
 
         private double? _height;//高度
@@ -25,7 +26,7 @@ namespace EHentai.uwp.Model
             get { return _height; }
             set
             {
-                SetProperty(ref _height, value);
+                SetProperty(ref _height, value, "Height");
             }
         }
 
@@ -45,7 +46,8 @@ namespace EHentai.uwp.Model
             get { return _cacheName; }
             set
             {
-                SetProperty(ref _cacheName, value);
+                _cacheName = value;
+                //SetProperty(ref _cacheName, value);
             }
         }
 
@@ -55,7 +57,7 @@ namespace EHentai.uwp.Model
             get { return _visibility; }
             set
             {
-                SetProperty(ref _visibility, value);
+                SetProperty(ref _visibility, value, "Visibility");
             }
         }
 

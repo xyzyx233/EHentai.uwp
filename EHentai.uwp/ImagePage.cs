@@ -22,6 +22,7 @@ namespace EHentai.uwp
         #region 属性
         public readonly object _imageListLock = new object();
 
+        public WebView View { get; set; }//多线程管理
         public List<Task> Tasks { get; set; }//多线程管理
         public ScrollViewer ImageBoxScroll { get; set; }//图片列表滚动条
         public ObservableCollection<ImageListModel> ImageList { get; set; } //当前页面数据源
@@ -103,9 +104,10 @@ namespace EHentai.uwp
             //// 开启集合的异步访问支持
             //BindingOperations.EnableCollectionSynchronization(ImageList, _imageListLock);
 
+
             //初始化事件
-            Loaded += ImagePage_Loaded; ;
-            Unloaded += ImagePage_Unloaded; ;
+            Loaded += ImagePage_Loaded;
+            Unloaded += ImagePage_Unloaded;
         }
 
         protected ImagePage()
@@ -147,22 +149,6 @@ namespace EHentai.uwp
             return GetHtmlDocument(Site.GetStringAsync(GetNowPageUrl()).Result);
         }
 
-        /// <summary>
-        /// 加载图片
-        /// </summary>
-        /// <param name="nowPageData"></param>
-        public void GetImages(ObservableCollection<ImageListModel> nowPageData, CancellationTokenSource isCancel = null)
-        {
-            if (nowPageData == null || !nowPageData.Any())
-                return;
-            //遍历集合获取图片
-            foreach (var item in nowPageData.Where(item => isCancel == null || !isCancel.IsCancellationRequested))
-            {
-                //多线程获取图标,防止阻塞UI
-                CreateTask(() => { GetImage(item, isCancel); });
-            }
-        }
-
         public async void GetImage(ImageListModel item, CancellationTokenSource isCancel = null)
         {
             try
@@ -180,19 +166,18 @@ namespace EHentai.uwp
                     }
 
 
-
+                    item.Src = ImageCache.GetImageBase64(item.CacheName);
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
                     {
                         try
                         {
+                            BitmapImage img = await ImageCache.HasCache(item.CacheName) ? ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
 
-                            BitmapImage img = (await ImageCache.HasCache(item.CacheName))
-                                ? ImageCache.GetImage(item.CacheName)
-                                : ImageCache.ErrorImage;
                             if (img == null)
                             {
-                                img = ImageCache.ErrorImage;
+                                item.Image = ImageCache.ErrorImage;
                             }
+
                             item.Image = img;
                             item.ImageLoadState = EnumLoadState.Loaded;
                             item.OnLoaded();
@@ -202,11 +187,45 @@ namespace EHentai.uwp
                             throw ex;
                         }
                     });
+                }
+
+            }
+            catch (Exception ex)
+            { }
+        }
+
+        public async void GetImageBase64(ImageListModel item, CancellationTokenSource isCancel = null)
+        {
+            try
+            {
+                item.ImageLoadState = EnumLoadState.Loading;
+                if (!string.IsNullOrEmpty(item.CacheName))
+                {
+                    if (!await ImageCache.HasCache(item.CacheName))
+                    {
+                        var imgStream = await Site.DownloadImage(item.ImageUrl);
+                        if (imgStream != null)
+                        {
+                            await ImageCache.CreateCache(item.CacheName, imgStream);
+                        }
+                    }
 
 
+                    item.Src = ImageCache.GetImageBase64(item.CacheName);
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+                    {
+                        try
+                        {
+                            item.ImageLoadState = EnumLoadState.Loaded;
+                            item.OnLoaded();
 
-
-                    //item.Height = null;
+                            await View.InvokeScriptAsync("SetSrc", new[] { item.ToJsonString() });
+                        }
+                        catch (Exception ex)
+                        {
+                            throw ex;
+                        }
+                    });
                 }
 
             }
@@ -222,6 +241,14 @@ namespace EHentai.uwp
             });
         }
 
+        public void GetImageBase64Async(ImageListModel item, CancellationTokenSource isCancel = null)
+        {
+            CreateTask(() =>
+            {
+                GetImageBase64(item, isCancel);
+            });
+        }
+
         /// <summary>
         /// 是否加载完当前图册的所有图片
         /// </summary>
@@ -229,6 +256,20 @@ namespace EHentai.uwp
         public bool IsLoadedImage()
         {
             return ImageCount <= NowImageCount;
+        }
+
+        /// <summary>
+        /// 滚动翻页
+        /// </summary>
+        public virtual async void Sorcll()
+        {
+            View = this.GetChildControl<WebView>();
+            if (View != null)
+            {
+                string js = @"window.onscroll = function() { var scrollTop = $(window).scrollTop(); var contentHeight = $('#divImageList').height(); var windowHeight = $(window).height(); if (scrollTop + windowHeight > contentHeight - " + LoadSize + ") { var data = { method: 'Scroll', data: scrollTop }; window.external.notify(JSON.stringify(data)); } };";
+                await View.InvokeScriptAsync("eval", new[] { js });
+                View.ScriptNotify += View_ScriptNotify;
+            }
         }
 
         private void ImagePage_Unloaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -240,57 +281,27 @@ namespace EHentai.uwp
         {
             if (IsFirst)
             {
-                ListBox listBox = ControlsSearch.GetChildObject<ListBox>(this, "ImageListBox");
+                ListBox listBox = this.GetChildControl<ListBox>("ImageListBox");
+                if (listBox!=null)
+                {
+                    ImageBoxScroll = listBox.GetChildControl<ScrollViewer>();
 
-                ImageBoxScroll = ControlsSearch.GetChildObject<ScrollViewer>(listBox);
-                if (ImageBoxScroll != null)
-                    ImageBoxScroll.ViewChanged += ImageBoxScroll_ViewChanged; ;
+                    //设置List的数据源
+                    listBox.ItemsSource = ImageList;
+                }
+            
 
-                //设置List的数据源
-                listBox.ItemsSource = ImageList;
+                Sorcll();
                 Load();
             }
         }
 
-        /// <summary>
-        /// 滚动翻页
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ImageBoxScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        private void View_ScriptNotify(object sender, NotifyEventArgs e)
         {
-            if (!IsLoadedImage())
+            if (e.Value.Contains("Scroll") && !IsLoadNextPage)
             {
-                #region 下一页
-                if (!IsLoadNextPage)
-                {
-                    //ScrollViewer scroll = e.OriginalSource as ScrollViewer;
-                    ScrollViewer scroll = ImageBoxScroll;
-                    if (ImageBoxScroll == scroll)
-                    {
-                        // get the vertical scroll position  
-                        double dVer = scroll.VerticalOffset;
-
-                        //get the vertical size of the scrollable content area  
-                        double dViewport = scroll.ViewportHeight;
-
-                        //get the vertical size of the visible content area  
-                        double dExtent = scroll.ExtentHeight;
-
-                        if (dVer != 0 && dVer + dViewport >= dExtent - LoadSize)
-                        {
-                            IsLoadNextPage = true;
-                            LoadDataByPage();
-                        }
-                        //else if (!IsFirst && dVer == 0)
-                        //{
-                        //    IsLoadPrePage = true;
-                        //    IsNext = false;
-                        //    LoadDataByPage();
-                        //}
-                    }
-                }
-                #endregion
+                IsLoadNextPage = true;
+                LoadDataByPage();
             }
         }
     }

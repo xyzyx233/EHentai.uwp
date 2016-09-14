@@ -14,6 +14,8 @@ using Windows.UI.Xaml.Media.Imaging;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
 using EHentai.uwp.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 // “空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=234238 上有介绍
 
@@ -47,34 +49,25 @@ namespace EHentai.uwp
             }
             InitializeComponent();
 
-
-            //Uri baseUri = new Uri("ms-appx-web:///Html/HomePage.html");
-
-            //HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, new Uri("http://exhentai.org/"));
-            //httpRequestMessage.Headers.Add("Cookie", Uwp.Http.Http.Cookie);
-            //HomeView.NavigateWithHttpRequestMessage(httpRequestMessage);
-            //HomeView.Navigate(baseUri);
-
-            //string filename = "httpsexhentai.orgg9747752c52333376.jpg";
-            //string img = $"<img src='{ImageCache.GetImageBase64(filename)}'/>";
-            //HomeView.NavigateToString(img);
         }
 
+        private void View_ScriptNotify(object sender, NotifyEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Value) && e.Value.Contains("ToDetailPage"))
+            {
+                JObject jsonBody = JObject.Parse(e.Value);
 
-        /// <summary>
-        /// 加载数据
-        /// </summary>
-        public override void Load()
+                ImageListModel model = jsonBody["data"].ToString().ToEntity<ImageListModel>();
+                Main.Add(model.Title, new DetailPage(model.Herf));
+            }
+        }
+
+        public override void LoadDataByPage()
         {
             if (cancel != null)
                 cancel.Cancel();
             cancel = new CancellationTokenSource();
             UrlParam = filter.ParamToString();
-            LoadDataByPage();
-        }
-
-        public override void LoadDataByPage()
-        {
             CreateTask(() =>
             {
                 try
@@ -147,7 +140,6 @@ namespace EHentai.uwp
                 //    Herf = x.FindFirst("a").Attribute("href").Value(),
                 //    CacheName = CommonHepler.GetValidFileName(x.FindFirst("a").Attribute("href").Value()) + ".jpg"
                 //}).Where(x => ImageList.All(y => y.ImageUrl != x.ImageUrl)).ToList());
-                var nowPageData = new ObservableCollection<ImageListModel>();
                 foreach (var div in divs)
                 {
                     ImageListModel model = new ImageListModel();
@@ -169,6 +161,7 @@ namespace EHentai.uwp
                                 ImageList.Add(model);
 
                                 string js = model.ToJsonString();
+
                                 await HomeView.InvokeScriptAsync("AddImages", new[] { js });
                             }
                             catch (Exception ex)
@@ -185,10 +178,6 @@ namespace EHentai.uwp
                     }
                 }
 
-
-                //ImageList.AddRange(nowPageData);
-                //Dispatcher.Invoke(() => { ImageList.AddRange(nowPageData); });
-
                 NowImageCount = ImageList.Count;
                 if (NowPageIndex < PageMax)
                 {
@@ -204,7 +193,7 @@ namespace EHentai.uwp
         private void ModelGetImageUrl(object sender, EventArgs e)
         {
             var model = sender as ImageListModel;
-            GetImageAsync(model);
+            GetImageBase64Async(model);
         }
 
 
@@ -214,7 +203,7 @@ namespace EHentai.uwp
         //    ImageList.Clear();
         //    filter.page = PageIndex = 0;
         //    ImageBoxScroll.ScrollToTop();
-        //    Load();
+        //    LoadDataByPage();
         //}
 
 
@@ -299,6 +288,11 @@ namespace EHentai.uwp
         private void HomeView_OnDragOver(object sender, DragEventArgs e)
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
+        }
+
+        private void HomePage_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            View.ScriptNotify += View_ScriptNotify;
         }
     }
 }

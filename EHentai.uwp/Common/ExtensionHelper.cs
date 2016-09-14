@@ -33,10 +33,17 @@ namespace EHentai.uwp.Common
             return string.IsNullOrEmpty(str) ? 0 : int.Parse(str);
         }
 
+        public static T ToEntity<T>(this string value)
+        {
+            return JsonConvert.DeserializeObject<T>(value);
+        }
+
         public static string ToJsonString(this object value)
         {
             string json = JsonConvert.SerializeObject(value);
             return string.IsNullOrEmpty(json) ? "null" : json;
         }
+
+       
     }
 }

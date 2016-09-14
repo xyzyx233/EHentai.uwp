@@ -45,10 +45,12 @@ namespace EHentai.uwp
             MainPivot = new Pivot();
             MainGrid.Children.Add(MainPivot);
 
-            if (Site.IsLogin)
-            {
-                CreateHomePage();
-            }
+            CreateHomePage();
+
+            //if (Site.IsLogin)
+            //{
+            //    CreateHomePage();
+            //}
             //else
             //{
             //    Site.OnLogined += User_OnLogined;
@@ -64,9 +66,15 @@ namespace EHentai.uwp
 
         public void CreateHomePage()
         {
+            Add("Home", new HomePage());
+        }
+
+        public void Add(string title, Page page)
+        {
             PivotItem item = new PivotItem();
-            item.Header = "Home";
-            item.Content = new HomePage();
+            item.Margin = new Thickness(0);
+            item.Header = title;
+            item.Content = page;
 
             MainPivot.Add(item);
         }

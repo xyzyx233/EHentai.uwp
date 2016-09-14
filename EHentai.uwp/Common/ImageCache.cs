@@ -178,7 +178,7 @@ namespace EHentai.uwp.Common
             string type = names[names.Length - 1];
             var stream = FileHelper.GetFileStream(fileName, CachePath);
             var bytes = StreamToBytes(stream);
-            return $"data: image/{type};base64," + Convert.ToBase64String(bytes);
+            return $"data:image/{type};base64," + Convert.ToBase64String(bytes);
         }
 
         public static byte[] StreamToBytes(Stream stream)

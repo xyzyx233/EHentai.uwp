@@ -13,15 +13,25 @@ namespace EHentai.uwp.Model
 
         protected virtual void OnPropertyChanged(string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            try
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+            catch (Exception ex)
+            {  }
         }
 
         protected void SetProperty<T>(ref T storage, T value, string propertyName = null)
         {
-            if (Equals(storage, value)) return;
+            try
+            {
+                if (Equals(storage, value)) return;
 
-            storage = value;
-            OnPropertyChanged(propertyName);
+                storage = value;
+                OnPropertyChanged(propertyName);
+            }
+            catch (Exception ex)
+            { }
         }
 
     }

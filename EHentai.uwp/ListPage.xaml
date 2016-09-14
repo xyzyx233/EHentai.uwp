@@ -1,0 +1,30 @@
+﻿<local:ImagePage
+    x:Class="EHentai.uwp.ListPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:EHentai.uwp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:common="using:EHentai.uwp.Common"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid x:Name="ImageGrid" >
+            <ListBox x:Name="ImageListBox">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="Transparent"  Tag="{Binding}" Margin="0" Padding="0">
+                            <Image Source="{Binding Image,Mode=TwoWay}" Stretch="Uniform" VerticalAlignment="Top"  Tag="{Binding}" Visibility="{Binding Visibility,Mode=TwoWay}"
+                               SizeChanged="FrameworkElement_OnSizeChanged"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ListBox>
+        </Grid>
+    </Grid>
+</local:ImagePage>

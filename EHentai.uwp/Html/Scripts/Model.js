@@ -3,5 +3,5 @@
     this.Title = "";
     this.Index = "";
     this.CacheName = "";
-    this.Src = "";
+    this.Src = null;
 }

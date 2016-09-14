@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 using EHentai.uwp.Model;
@@ -35,8 +36,13 @@ namespace EHentai.uwp
 
         public async void ShowMessage(string cotent)
         {
-            MessageDialog messageDialog = new MessageDialog(cotent);
-            await messageDialog.ShowAsync();
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+            {
+                MessageDialog messageDialog = new MessageDialog(cotent);
+                await messageDialog.ShowAsync();
+            });
+
+
         }
 
         public void CreateTask(Action action)
