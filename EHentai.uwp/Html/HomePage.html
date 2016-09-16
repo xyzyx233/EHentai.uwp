@@ -64,10 +64,10 @@
             window.external.notify(JSON.stringify(data));
         }
 
-       
+
 
         function ini() {
-            for (var i = 0; i < 10; i++) {
+            for (var i = 0; i < 20; i++) {
                 var data = new ImageListModel();
                 data.Visibility = true;
                 data.Title = "dawdzs efe  e eawdzs efe  e e  s  s  sz e awd爽身粉" + i;
@@ -89,49 +89,49 @@
     </script>
 
 </head>
-<body layout="column" ng-app="myApp" ng-controller="myCtrl" md-theme="{{theme}}">
+<body>
     <!--<md-button class="md-raised" onclick="ini()" style="position: fixed; top: 10px;">添加</md-button>-->
     <!--<md-button class="md-raised" onclick="hide()" style="position: fixed; top: 10px;">隐藏</md-button>-->
-  
 
-    <md-toolbar layout="row" >
-        <div class="md-toolbar-tools">
-            <md-button class="md-icon-button" aria-label="Toggle Menu" ng-click="toggleSidenav('left')">
-                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
-            </md-button>
-            <md-input-container layout="row" style="margin-left: 10px; width: 500px;" md-no-float>
-                <label style="border-color: white; color: white;font-size: 15px;">关键词</label>
-                <input style="border-color: white; color: white; " type="text" id="txtSearch">
-            </md-input-container>
-            <!--<md-button class="md-raised" onclick="" style="">查找</md-button>-->
-            <md-button class="md-fab md-raised md-mini" aria-label="search" onclick="search()">
-                <i class="material-icons" style="color: black; margin-top: 9px;" >search</i>
-            </md-button>
-            <span flex></span>
-            <md-button class="md-icon-button" aria-label="More">
-                <md-icon md-svg-icon="img/icons/more_vert.svg"></md-icon>
-            </md-button>
-        </div>
-    </md-toolbar>
-
-    <div layout="row" flex class="change-my-css">
-        <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('')">
-            
-        </md-sidenav>
-
-        <md-content id="content">
-            <div class="ImageList" style="width: 230px;" ng-repeat="ele in ImageList">
-                <md-card>
-                    <md-card-title style="height: 30px; padding: 4px; overflow: hidden;" md-colors="{background: '{{primary}}-500'}">
-                        <span style="font-size: 12px; text-align: center;">{{ele.Title}}<md-tooltip>{{ele.Title}}</md-tooltip></span>
-                    </md-card-title>
-                    <md-card-content style="padding: 0;height: 300px; ">
-                        <img ng-src="{{ele.ImageUrl}}" style="width: 100%;max-height: 300px; " ng-show="{{ele.Visibility}}" ng-click="ToDetailPage(ele)">
-                    </md-card-content>
-                </md-card>
+    <div layout="column" ng-app="myApp" ng-controller="myCtrl" md-theme="{{theme}}">
+        <md-toolbar layout="row">
+            <div class="md-toolbar-tools">
+                <md-button class="md-icon-button" aria-label="Toggle Menu" ng-click="toggleSidenav('left')">
+                    <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+                </md-button>
+                <md-input-container layout="row" style="margin-left: 10px; width: 500px;" md-no-float>
+                    <label style="border-color: white; color: white;font-size: 15px;">关键词</label>
+                    <input style="border-color: white; color: white; " type="text" id="txtSearch">
+                </md-input-container>
+                <!--<md-button class="md-raised" onclick="" style="">查找</md-button>-->
+                <md-button class="md-fab md-raised md-mini" aria-label="search" onclick="search()">
+                    <i class="material-icons" style="color: black; margin-top: 9px;">search</i>
+                </md-button>
+                <span flex></span>
+                <md-button class="md-icon-button" aria-label="More">
+                    <md-icon md-svg-icon="img/icons/more_vert.svg"></md-icon>
+                </md-button>
             </div>
-        </md-content>
-    </div>
+        </md-toolbar>
 
+        <div layout="row" flex class="change-my-css">
+            <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('')">
+
+            </md-sidenav>
+
+            <md-content id="content">
+                <div class="ImageList" style="width: 230px;" ng-repeat="ele in ImageList">
+                    <md-card>
+                        <md-card-title style="height: 30px; padding: 4px; overflow: hidden;" md-colors="{background: '{{primary}}-500'}">
+                            <span style="font-size: 12px; text-align: center;">{{ele.Title}}<md-tooltip>{{ele.Title}}</md-tooltip></span>
+                        </md-card-title>
+                        <md-card-content style="padding: 0;height: 300px; ">
+                            <img ng-src="{{ele.ImageUrl}}" style="width: 100%;max-height: 300px; " ng-show="{{ele.Visibility}}" ng-click="ToDetailPage(ele)">
+                        </md-card-content>
+                    </md-card>
+                </div>
+            </md-content>
+        </div>
+    </div>
 </body>
 </html>

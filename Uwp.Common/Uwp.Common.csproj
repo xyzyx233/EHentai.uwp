@@ -107,6 +107,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extend\ObjectExtend.cs" />
     <Compile Include="FileHelper.cs" />
     <Compile Include="Extend\ControlExtension.cs" />
     <Compile Include="Extend\ObservableCollectionExtend.cs" />

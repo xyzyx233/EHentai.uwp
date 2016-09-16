@@ -49,66 +49,46 @@ namespace EHentai.uwp
             {
                 //获取当前页的数据
                 var datas = await GetNowPageData();
-                if (IsFirst)
-                {
-                    //设置标题
-                    string js = $"scope.enTitle='{enTitle}'; scope.jpTitle='{jpTitle}'; scope.$apply();";
-                    await View.InvokeScriptAsync("eval", new[] { js });
-                    IsLoadNextPage = IsFirst = false;
-                }
-                else if (IsLoadNextPage)
-                {
-                    IsLoadNextPage = false;
-                }
-                NowImageCount = ImageList.Count;
-                NowPageIndex++;
-
-                if (datas.Any())
-                {
-                    //将当前页数据转为json格式的字符串
-                    string js = datas.ToJsonString();
-                    //将数据添加到前台页面
-                    await View.InvokeScriptAsync("AddImages", new[] { js });
-
-                  
-                }
-
+                ShowData(datas);
             }
             catch (Exception ex)
             {
                 IsLoadNextPage = false;
                 ShowMessage(ex.Message);
             }
+        }
 
+        private async void ShowData(ObservableCollection<ImageListModel> datas)
+        {
+            string js;
+            if (IsFirst)
+            {
+                //设置标题
+                js = $"scope.enTitle='{enTitle.HtmlEncode()}'; scope.jpTitle='{jpTitle.HtmlEncode()}'; scope.$apply();";
+                await View.InvokeScriptAsync("eval", new[] { js });
+            
+            }
+            IsLoadNextPage = false;
 
-            //CreateTask(() =>
-            //{
-            //    try
-            //    {
-            //        LoadNowPageData();
+            if (datas.Any())
+            {
+                NowImageCount += datas.Count;
+                //将当前页数据转为json格式的字符串
+                js = datas.ToJsonString();
+                //将数据添加到前台页面
+                await View.InvokeScriptAsync("AddImages", new[] { js });
+                
+                NowPageIndex++;
+            }
 
-            //        IsLoadNextPage = false;
-            //        //ImageGrid.HideLoading();
+            if (IsFirst)
+            {
+                IsFirst = false;
+                IsLoadNextPage = true;
 
-
-            //        CreateTask(() =>
-            //        {
-            //            if (NowPageIndex == 1)
-            //            {
-            //                IsLoadNextPage = true;
-            //                NowPageIndex++;
-
-            //                LoadNowPageData();
-            //            }
-            //        });
-
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        //ImageGrid.HideLoading();
-            //        ShowMessage(ex.Message);
-            //    }
-            //});
+                datas = await GetNowPageData();
+                ShowData(datas);
+            }
         }
 
         private async Task<ObservableCollection<ImageListModel>> GetNowPageData()
@@ -132,8 +112,7 @@ namespace EHentai.uwp
                         jpTitle = document.SelectSingleNode("//*[@id=\"gj\"]").InnerHtml; //日文标题
 
                         //var download = document.SelectNodes("//*[@id=\"gd5\"]/[@class=\"g2\"]/a").Where(x => x.InnerHtml.Contains("Torrent Download") && !x.InnerHtml.Contains("0"));
-
-
+                        
                         //CreateTask(() =>
                         //{
                         //    //获取封面图片
@@ -148,14 +127,10 @@ namespace EHentai.uwp
                         //        CoverImage.Source = ImageCache.GetImage(imgCache);
                         //    }));
                         //});
-
-
-
-                        //IsFirst = false;
                     }
                     else
                     {
-                        if (!IsLoadedImage())
+                        if (!IsLoaded)
                             document = GetHtml().DocumentNode;
                         else
                             return datas;
@@ -174,10 +149,8 @@ namespace EHentai.uwp
                         model.Height = ImageHeight;
 
                         datas.Add(model);
-                       
-                    }
 
-                   
+                    }
 
                     return datas;
                 }
@@ -193,11 +166,6 @@ namespace EHentai.uwp
         {
             var model = sender as ImageListModel;
             GetImageBase64Async(model);
-        }
-
-        private void DetailPage_OnLoaded(object sender, RoutedEventArgs e)
-        {
-            //View.ScriptNotify += View_ScriptNotify;
         }
 
         private void View_ScriptNotify(object sender, NotifyEventArgs e)

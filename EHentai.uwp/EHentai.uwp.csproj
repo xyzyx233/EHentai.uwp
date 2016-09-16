@@ -187,6 +187,14 @@
       <Project>{727dc0b8-eb04-41a2-a301-e660ace07f55}</Project>
       <Name>MaterialDesignThemes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Http\Uwp.Http.csproj">
+      <Project>{53FCAAC6-2837-49DB-93F8-5ADDFFB6452A}</Project>
+      <Name>Uwp.Http</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Uwp.Common\Uwp.Common.csproj">
+      <Project>{01BCB284-B457-469A-9B4C-592F6A4C0635}</Project>
+      <Name>Uwp.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Uwp.Control\Uwp.Control.csproj">
       <Project>{70EC43A2-D571-4DE7-9CD2-2D0CECE6283F}</Project>
       <Name>Uwp.Control</Name>

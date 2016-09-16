@@ -132,6 +132,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Page>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Uwp.Common\Uwp.Common.csproj">
+      <Project>{01BCB284-B457-469A-9B4C-592F6A4C0635}</Project>
+      <Name>Uwp.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0' ">
     <VisualStudioVersion>15.0</VisualStudioVersion>
   </PropertyGroup>

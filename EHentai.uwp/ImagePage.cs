@@ -32,9 +32,10 @@ namespace EHentai.uwp
         public bool IsLoadPrePage { get; set; }//是否正在加载上一页
         public int ImageCount { get; set; }//图片总数量
         public int NowImageCount { get; set; }//当前已加载的图片数量
+        public bool IsLoaded => ImageCount <= NowImageCount;//是否加载完所有图片
         public int LoadSize { get; set; } //滚动加载的距离
 
-        private int _nowPageIndex;//当前页数
+        private int _nowPageIndex = 1;//当前页数
         public int NowPageIndex
         {
             get { return _nowPageIndex; }
@@ -252,22 +253,13 @@ namespace EHentai.uwp
         }
 
         /// <summary>
-        /// 是否加载完当前图册的所有图片
-        /// </summary>
-        /// <returns></returns>
-        public bool IsLoadedImage()
-        {
-            return ImageCount <= NowImageCount;
-        }
-
-        /// <summary>
         /// 滚动翻页
         /// </summary>
         public virtual async void Sorcll()
         {
             if (View != null)
             {
-                string js = @"window.onscroll = function() { var scrollTop = $(window).scrollTop(); var contentHeight = $('#divImageList').height(); var windowHeight = $(window).height(); if (scrollTop + windowHeight > contentHeight - " + LoadSize + ") { var data = { method: 'Scroll', data: scrollTop }; window.external.notify(JSON.stringify(data)); } };";
+                string js = @"window.onscroll = function() { var scrollTop = $(window).scrollTop(); var contentHeight = $('#content').height(); var windowHeight = $(window).height(); if (scrollTop + windowHeight > contentHeight - " + LoadSize + ") { var data = { method: 'Scroll', data: scrollTop }; window.external.notify(JSON.stringify(data)); } };";
                 await View.InvokeScriptAsync("eval", new[] { js });
                 View.ScriptNotify += View_ScriptNotify;
             }
@@ -283,7 +275,7 @@ namespace EHentai.uwp
             if (IsFirst)
             {
                 ListBox listBox = this.GetChildControl<ListBox>("ImageListBox");
-                if (listBox!=null)
+                if (listBox != null)
                 {
                     //设置List的数据源
                     listBox.ItemsSource = ImageList;

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Net;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
 namespace Uwp.Common.Extend
@@ -37,15 +38,36 @@ namespace Uwp.Common.Extend
             return string.IsNullOrEmpty(str) ? 0 : int.Parse(str);
         }
 
+        /// <summary>
+        /// json字符串转实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static T ToEntity<T>(this string value)
         {
             return JsonConvert.DeserializeObject<T>(value);
         }
 
-        public static string ToJsonString(this object value)
+        /// <summary>
+        /// 转为HTML编码字符串
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string HtmlEncode(this string value)
         {
-            string json = JsonConvert.SerializeObject(value);
-            return string.IsNullOrEmpty(json) ? "null" : json;
+            return WebUtility.HtmlEncode(value);
         }
+
+        /// <summary>
+        /// 解码HTML编码字符串
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string HtmlDecode(this string value)
+        {
+            return WebUtility.HtmlDecode(value);
+        }
+        
     }
 }
