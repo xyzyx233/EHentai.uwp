@@ -2,7 +2,6 @@
 using EHentai.uwp.Model;
 using System;
 using System.Collections.ObjectModel;
-using EHentai.uwp.Extend;
 using HtmlAgilityPack;
 using System.Threading.Tasks;
 using System.Linq;
@@ -16,6 +15,7 @@ using Windows.Web.Http.Filters;
 using EHentai.uwp.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Uwp.Common.Extend;
 
 // “空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=234238 上有介绍
 
@@ -49,124 +49,101 @@ namespace EHentai.uwp
             }
             InitializeComponent();
 
+            MainGrid.Children.Add(View);
+            View.Navigate(new Uri("ms-appx-web:///Html/HomePage.html"));
+            View.ScriptNotify += View_ScriptNotify;
         }
 
         private void View_ScriptNotify(object sender, NotifyEventArgs e)
         {
-            if (!string.IsNullOrEmpty(e.Value) && e.Value.Contains("ToDetailPage"))
+            if (!string.IsNullOrEmpty(e.Value))
             {
                 JObject jsonBody = JObject.Parse(e.Value);
-
-                ImageListModel model = jsonBody["data"].ToString().ToEntity<ImageListModel>();
-                Main.Add(model.Title, new DetailPage(model.Herf));
+                string method = jsonBody["method"].ToString();
+                string data = jsonBody["data"].ToString();
+                switch (method)
+                {
+                    case "ToDetailPage":
+                        ImageListModel model = data.ToEntity<ImageListModel>();
+                        PivotView.AddSelect(model.Title, new DetailPage(model.Herf));
+                        break;
+                    case "Search":
+                        Search(data);
+                        break;
+                }
             }
         }
 
-        public override void LoadDataByPage()
+        public override async void LoadDataByPage()
         {
-            if (cancel != null)
-                cancel.Cancel();
+            cancel?.Cancel();
             cancel = new CancellationTokenSource();
             UrlParam = filter.ParamToString();
-            CreateTask(() =>
+
+            try
             {
-                try
+                //获取当前页的数据
+                var datas = await GetNowPageData();
+                if (datas.Any())
                 {
-                    var isCancel = cancel;
-
-                    if (IsFirst)
-                    {
-                        //ImageGrid.ShowLoading();
-                        //IsFirst = false;
-                    }
-
-                    if (!isCancel.IsCancellationRequested)
-                    {
-                        LoadNowPageData();
-
-                        CreateTask(() =>
-                        {
-                            if (NowPageIndex == 1)
-                            {
-                                LoadNowPageData();
-                            }
-                        }, isCancel.Token);
-                    }
+                    //将当前页数据转为json格式的字符串
+                    string js = datas.ToJsonString();
+                    //将数据添加到前台页面
+                    await View.InvokeScriptAsync("AddImages", new[] { js });
                 }
-                catch (Exception ex)
-                {
-                    IsLoadNextPage = false;
-                    //ImageGrid.HideLoading();
-                    ShowMessage(ex.Message);
-                }
-            }, cancel.Token);
+
+            }
+            catch (Exception ex)
+            {
+                IsLoadNextPage = false;
+                ShowMessage(ex.Message);
+            }
         }
 
         /// <summary>
         /// 获取当前页的数据
         /// </summary>
         /// <returns></returns>
-        private async void LoadNowPageData()
+        private async Task<ObservableCollection<ImageListModel>> GetNowPageData()
         {
-            try
+            return await Task.Run(() =>
             {
-                //获取html对象
-                //var document = GetHtmlDocument(Http.GetIndexPage(filter.PramaToString()));
-                var document = GetHtml();
-
-                var nodes = document.DocumentNode;
-
-                if (ImageCount == 0)
+                ObservableCollection<ImageListModel> datas = new ObservableCollection<ImageListModel>();
+                try
                 {
-                    var countStr = nodes.SelectSingleNode("//*[@class=\"ip\"]").InnerHtml.Split(' ');
-                    //var countStr = document.FindFirst("p[class=\"ip\"]").InnerHtml().Split(' ');
-                    ImageCount = int.Parse(countStr[countStr.Length - 1].Replace(",", ""));
+                    //获取html对象
+                    var document = GetHtml();
 
-                    string pageMax = nodes.SelectNodes("//*[@class=\"ptt\"]/tr/td").Last().PreviousSibling.FirstChild.InnerHtml;
-                    PageMax = pageMax.ToInt() - 1;
-                }
-                 
-                //获取所需要的元素
-                //var div = document.Find("div[class=\"id3\"]").ToList();
+                    var nodes = document.DocumentNode;
 
-                var divs = nodes.SelectNodes("//*[@class=\"id3\"]");
-
-                //获取当前页的数据
-                //var nowPageData = new ObservableCollection<ImageListModel>(div.Select(x => new ImageListModel
-                //{
-                //    Title = x.PreviousElement().FindFirst("a").InnerHtml(),
-                //    Image = null,
-                //    ImageUrl = x.FindFirst("img").Attribute("src").Value(),
-                //    Herf = x.FindFirst("a").Attribute("href").Value(),
-                //    CacheName = CommonHepler.GetValidFileName(x.FindFirst("a").Attribute("href").Value()) + ".jpg"
-                //}).Where(x => ImageList.All(y => y.ImageUrl != x.ImageUrl)).ToList());
-                foreach (var div in divs)
-                {
-                    ImageListModel model = new ImageListModel();
-
-                    model.GetImageUrl += ModelGetImageUrl;
-                    var a = div.FirstChild;
-                    if (ImageList.All(x => x.ImageUrl != model.ImageUrl))
+                    #region 获取记录
+                    if (ImageCount == 0)
                     {
+                        //总记录数量
+                        var countStr = nodes.SelectSingleNode("//*[@class=\"ip\"]").InnerHtml.Split(' ');
+                        ImageCount = int.Parse(countStr[countStr.Length - 1].Replace(",", ""));
+
+                        //总页数
+                        string pageMax = nodes.SelectNodes("//*[@class=\"ptt\"]/tr/td").Last().PreviousSibling.FirstChild.InnerHtml;
+                        PageMax = pageMax.ToInt() - 1;
+                    }
+                    #endregion
+
+                    var divs = nodes.SelectNodes("//*[@class=\"id3\"]");
+
+                    foreach (var div in divs)
+                    {
+                        ImageListModel model = new ImageListModel();
+
+                        //model.GetImageUrl += ModelGetImageUrl;
+                        var a = div.FirstChild;
+
                         var img = a.FirstChild;
                         model.Title = img.Attributes["title"].Value;
                         model.Herf = a.Attributes["href"].Value;
                         model.CacheName = model.Herf.GetValidFileName() + ".jpg";
                         model.ImageUrl = img.Attributes["src"].Value;
-                        //nowPageData.Add(model);
-                        await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
-                        {
-                            try
-                            {
-                                ImageList.Add(model);
-
-                                string js = model.ToJsonString();
-
-                                await HomeView.InvokeScriptAsync("AddImages", new[] { js });
-                            }
-                            catch (Exception ex)
-                            { }
-                        });
+                        datas.Add(model);
                         if (IsFirst)
                         {
                             IsLoadNextPage = IsFirst = false;
@@ -176,18 +153,21 @@ namespace EHentai.uwp
                             IsLoadNextPage = false;
                         }
                     }
-                }
 
-                NowImageCount = ImageList.Count;
-                if (NowPageIndex < PageMax)
-                {
-                    NowPageIndex++;
+                    NowImageCount = ImageList.Count;
+                    if (NowPageIndex < PageMax)
+                    {
+                        NowPageIndex++;
+                    }
+
+                    return datas;
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            });
+
         }
 
         private void ModelGetImageUrl(object sender, EventArgs e)
@@ -197,14 +177,26 @@ namespace EHentai.uwp
         }
 
 
-        //private void Search()
-        //{
-        //    filter.f_search = TxtFiler.Text;
-        //    ImageList.Clear();
-        //    filter.page = PageIndex = 0;
-        //    ImageBoxScroll.ScrollToTop();
-        //    LoadDataByPage();
-        //}
+        private async void Search(string filer)
+        {
+            try
+            {
+                filter.f_search = filer;
+                ImageList.Clear();
+                NowPageIndex = 0;
+
+                //将当前页数据转为json格式的字符串
+                string js = "reload();";
+                //将数据添加到前台页面
+                await View.InvokeScriptAsync("eval", new[] { js });
+                //View.Refresh();
+                LoadDataByPage();
+            }
+            catch (Exception ex)
+            {
+                ShowMessage(ex.Message);
+            }
+        }
 
 
         //private void SearchViewbox_OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -285,14 +277,10 @@ namespace EHentai.uwp
         //        ShowMessage(ex.Message);
         //    }
         //}
-        private void HomeView_OnDragOver(object sender, DragEventArgs e)
-        {
-            e.AcceptedOperation = DataPackageOperation.Copy;
-        }
 
         private void HomePage_OnLoaded(object sender, RoutedEventArgs e)
         {
-            View.ScriptNotify += View_ScriptNotify;
+            //View.ScriptNotify += View_ScriptNotify;
         }
     }
 }

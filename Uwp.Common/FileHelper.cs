@@ -8,7 +8,7 @@ using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
-namespace EHentai.uwp.Common
+namespace Uwp.Common
 {
     public class FileHelper
     {
@@ -87,7 +87,15 @@ namespace EHentai.uwp.Common
         {
             try
             {
-                StorageFile file = await LoaclFolder.GetFileAsync(path + "\\" + name);
+                if (!string.IsNullOrEmpty(path) && name.Contains(path))
+                {
+                    path = "";
+                }
+                else
+                {
+                    path = path + "\\";
+                }
+                StorageFile file = await LoaclFolder.GetFileAsync(path + name).AsTask().ConfigureAwait(false);
                 return file;
             }
             catch (Exception ex)
@@ -205,6 +213,6 @@ namespace EHentai.uwp.Common
                 return null;
             }
         }
-        
+
     }
 }

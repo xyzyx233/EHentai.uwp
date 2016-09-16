@@ -8,9 +8,12 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI;
 using Windows.UI.Popups;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -19,9 +22,11 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using EHentai.uwp.Common;
+using Uwp.Common;
+using Uwp.Common.Extend;
 using Uwp.Http;
-using EHentai.uwp.Extend;
-using EHentai.uwp.Model;
+using Uwp.Control;
+using Uwp.Control.Model;
 
 //“空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409 上有介绍
 
@@ -32,22 +37,25 @@ namespace EHentai.uwp
     /// </summary>
     public sealed partial class MainPage : BasePage
     {
-        public static MainPage Main;
-        public static Pivot MainPivot;
-
-        //public static ObservableCollection<PivotItem> listItems = new ObservableCollection<PivotItem>();
+        public static Button HideButton = new Button();
 
         public MainPage()
         {
+            var appView = ApplicationView.GetForCurrentView();
+            appView.TryResizeView(new Size(ScreenResolution.Width * 0.85, ScreenResolution.Height * 0.85));
+
             InitializeComponent();
 
             Main = this;
-            MainPivot = new Pivot();
-            MainGrid.Children.Add(MainPivot);
+            PivotView = new PivotViewModel();
+
+            HideButton = hideButton;
+
+            DataContext = PivotView;
 
             if (Site.IsLogin)
             {
-                CreateHomePage();
+                PivotView.Add("主页", new HomePage());
             }
             //else
             //{
@@ -55,20 +63,12 @@ namespace EHentai.uwp
             //    Site.Login();
             //}
 
+
         }
 
         private void User_OnLogined(object sender, EventArgs e)
         {
-            CreateHomePage();
-        }
-
-        public void CreateHomePage()
-        {
-            PivotItem item = new PivotItem();
-            item.Header = "Home";
-            item.Content = new HomePage();
-
-            MainPivot.Add(item);
+            //PivotView.Add("主页", new HomePage());
         }
 
         private async void MainPage_OnDrop(object sender, DragEventArgs e)
@@ -85,6 +85,11 @@ namespace EHentai.uwp
         private void MainPage_OnDragOver(object sender, DragEventArgs e)
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
+        }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            PivotView.SelectedIndex = 0;
         }
     }
 }

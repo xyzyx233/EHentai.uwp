@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media.Imaging;
 using HtmlAgilityPack;
+using Uwp.Common.Extend;
 
 namespace EHentai.uwp
 {
@@ -22,9 +23,9 @@ namespace EHentai.uwp
         #region 属性
         public readonly object _imageListLock = new object();
 
+        public int ItemIndex { get; set; }
         public WebView View { get; set; }//多线程管理
         public List<Task> Tasks { get; set; }//多线程管理
-        public ScrollViewer ImageBoxScroll { get; set; }//图片列表滚动条
         public ObservableCollection<ImageListModel> ImageList { get; set; } //当前页面数据源
         public bool IsFirst { get; set; }//是否第一次加载
         public bool IsLoadNextPage { get; set; } //是否正在加载下一页
@@ -100,6 +101,7 @@ namespace EHentai.uwp
             IsFirst = true;
             Tasks = new List<Task>();
             ImageList = new ObservableCollection<ImageListModel>();
+            View = new WebView(WebViewExecutionMode.SameThread);
 
             //// 开启集合的异步访问支持
             //BindingOperations.EnableCollectionSynchronization(ImageList, _imageListLock);
@@ -263,7 +265,6 @@ namespace EHentai.uwp
         /// </summary>
         public virtual async void Sorcll()
         {
-            View = this.GetChildControl<WebView>();
             if (View != null)
             {
                 string js = @"window.onscroll = function() { var scrollTop = $(window).scrollTop(); var contentHeight = $('#divImageList').height(); var windowHeight = $(window).height(); if (scrollTop + windowHeight > contentHeight - " + LoadSize + ") { var data = { method: 'Scroll', data: scrollTop }; window.external.notify(JSON.stringify(data)); } };";
@@ -284,13 +285,9 @@ namespace EHentai.uwp
                 ListBox listBox = this.GetChildControl<ListBox>("ImageListBox");
                 if (listBox!=null)
                 {
-                    ImageBoxScroll = listBox.GetChildControl<ScrollViewer>();
-
                     //设置List的数据源
                     listBox.ItemsSource = ImageList;
                 }
-            
-
                 Sorcll();
                 Load();
             }

@@ -8,24 +8,36 @@
     mc:Ignorable="d" AllowDrop="True" Drop="MainPage_OnDrop" DragOver="MainPage_OnDragOver">
 
     <Grid x:Name="MainGrid">
-        <!--<Pivot x:Name="MainPivot">
-            <PivotItem Header="aaa">
-                    <StackPanel>
-                        <TextBlock FontSize="28" Margin="8 0 0 0">Material Design In XAML Toolkit</TextBlock>
-                        <TextBlock Margin="8 0 0 0" Foreground="{ThemeResource MaterialDesignBodyLight}">UWP Edition</TextBlock>
-                        <StackPanel Margin="8 8 0 0" Orientation="Horizontal" VerticalAlignment="Top">
-                            <Button Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}">LIGHT</Button>
-                            <Button Margin="8 0 0 0" Width="100" Style="{StaticResource MaterialDesignRaisedButton}">MID</Button>
-                            <Button Margin="8 0 0 0" Width="100" Style="{StaticResource MaterialDesignRaisedDarkButton}">DARK</Button>
-                            <Button Margin="8 0 0 0" Width="100" Style="{StaticResource MaterialDesignRaisedAccentButton}">ACCENT</Button>
-                            <TextBox Width="100" Style="{StaticResource MaterialDesignTextBox}"></TextBox>
-                        </StackPanel>
-                        <ToggleSwitch Style="{StaticResource MaterialDesignToggleSwitch}" />
+        <Button x:Name="hideButton" Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}" Click="ButtonBase_OnClick" Opacity="0">LIGHT</Button>
+        <Pivot x:Name="MainPivot" SelectedIndex="{Binding SelectedIndex,Mode=TwoWay}" ItemsSource="{Binding Contents}" >
+            <Pivot.HeaderTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Header}" FontSize="15" VerticalAlignment="Center"/>
+                </DataTemplate>
+            </Pivot.HeaderTemplate>
+            <Pivot.ItemTemplate>
+                <DataTemplate>
+                    <PivotItem Content="{Binding Content}"></PivotItem>
+                </DataTemplate>
+            </Pivot.ItemTemplate>
+            <!--<PivotItem Header="{Binding Header}" Content="{Binding Content}"></PivotItem>-->
+            <!--<PivotItem Header="aaaaa">
+                <StackPanel>
+                    <TextBlock FontSize="28" Margin="8 0 0 0">Material Design In XAML Toolkit</TextBlock>
+                    <TextBlock Margin="8 0 0 0" Foreground="{ThemeResource MaterialDesignBodyLight}">UWP Edition</TextBlock>
+                    <StackPanel Margin="8 8 0 0" Orientation="Horizontal" VerticalAlignment="Top">
+                        <Button Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}">LIGHT</Button>
+                        <Button Margin="8 0 0 0" Width="100" Style="{StaticResource MaterialDesignRaisedButton}">MID</Button>
+                        <Button Margin="8 0 0 0" Width="100" Style="{StaticResource MaterialDesignRaisedDarkButton}">DARK</Button>
+                        <Button Margin="8 0 0 0" Width="100" Style="{StaticResource MaterialDesignRaisedAccentButton}">ACCENT</Button>
+                        <TextBox Width="100" Style="{StaticResource MaterialDesignTextBox}"></TextBox>
                     </StackPanel>
-                </PivotItem>
-                <PivotItem Header="bbb">
-                    <Button Width="100" Style="{StaticResource MaterialDesignRaisedBlueButton}">LIGHT</Button>
-                </PivotItem>
-        </Pivot>-->
+                    <ToggleSwitch Style="{StaticResource MaterialDesignToggleSwitch}" />
+                </StackPanel>
+            </PivotItem>
+            <PivotItem Header="bbb">
+                <Button Width="100" Style="{StaticResource MaterialDesignRaisedBlueButton}">LIGHT</Button>
+            </PivotItem>-->
+        </Pivot>
     </Grid>
 </local:BasePage>

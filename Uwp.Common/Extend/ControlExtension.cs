@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 
-namespace EHentai.uwp.Common
+namespace Uwp.Common.Extend
 {
     public static class ControlExtension
     {

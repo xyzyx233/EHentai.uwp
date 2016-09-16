@@ -8,13 +8,16 @@ using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 using EHentai.uwp.Model;
+using Uwp.Control;
+using Uwp.Control.Model;
 using Uwp.Http;
 
 namespace EHentai.uwp
 {
     public abstract class BasePage : Page
     {
-        public MainPage Main = MainPage.Main;
+        public static MainPage Main;
+        public static PivotViewModel PivotView;
         public List<Task> Tasks = new List<Task>();
         public static Site Site = new ExHentaiSite();
         public static Http Http = Site.Http;
@@ -54,7 +57,5 @@ namespace EHentai.uwp
         {
             Tasks.Add(Task.Run(action, cancellationToken));
         }
-
-
     }
 }

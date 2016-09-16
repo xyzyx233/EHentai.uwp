@@ -1,15 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-namespace EHentai.uwp.Common
+namespace Uwp.Common.Extend
 {
-    public static class ExtensionHelper
+    public static class StringExtend
     {
+        /// <summary>
+        /// 去除特殊符号 获取符合文件命名的字符串
+        /// </summary>
+        /// <param name="value"></param>
+        public static string GetValidFileName(this string value)
+        {
+            return Regex.Replace(value, @"\\|/|:|\*|\?|""|<|>|\|", "");
+        }
+
         /// <summary>
         /// 获得字符串中开始和结束字符串中间得值
         /// </summary>
@@ -43,7 +47,5 @@ namespace EHentai.uwp.Common
             string json = JsonConvert.SerializeObject(value);
             return string.IsNullOrEmpty(json) ? "null" : json;
         }
-
-       
     }
 }

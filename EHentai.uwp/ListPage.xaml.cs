@@ -4,17 +4,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
-using EHentai.uwp.Extend;
+using Uwp.Common.Extend;
 
 // “空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=234238 上有介绍
 
@@ -25,6 +28,7 @@ namespace EHentai.uwp
     /// </summary>
     public sealed partial class ListPage : ImagePage
     {
+        public ScrollViewer ImageScroll;
         private int nowShowIndex = 0; //当前显示的图片的坐标
         private double nowOffset = 0; //滚动条当前距离
         private double nowShowImageOffset = 0; //滚动条相对于当前显示图片的滚动距离
@@ -97,7 +101,7 @@ namespace EHentai.uwp
                             }
                         });
 
-                       
+
 
 
                         //PrePrevPageIndex = NowPageIndex - 1;
@@ -114,12 +118,6 @@ namespace EHentai.uwp
                         nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." +
                                              nowModel.ImageUrl.Split('.').Last();
                         GetImageAsync(nowModel);
-
-                        await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                         {
-                             ImageBoxScroll.ViewChanged += ImageBoxScroll_ViewChanged;
-                         });
-
 
                         string next = document.SelectSingleNode("//*[@id=\"next\"]").Attributes["href"].Value;
                         string prev = document.SelectSingleNode("//*[@id=\"prev\"]").Attributes["href"].Value;
@@ -182,12 +180,12 @@ namespace EHentai.uwp
             });
         }
 
-        private void ImageBoxScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        private void ImageScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
         {
             ScrollViewer scroll = sender as ScrollViewer;
-            if (ImageBoxScroll == scroll)
+            if (ImageScroll == scroll)
             {
-                if (nowOffset < ImageBoxScroll.VerticalOffset)
+                if (nowOffset < ImageScroll.VerticalOffset)
                 {
                     ShowNextLoadedImage();
                 }
@@ -195,19 +193,21 @@ namespace EHentai.uwp
                 {
                     ShowPrevLoadedImage();
                 }
-                nowOffset = ImageBoxScroll.VerticalOffset;
+                nowOffset = ImageScroll.VerticalOffset;
                 nowShowIndex = GetIndex();
-                //int balance = (int)(ImageBoxScroll.VerticalOffset % height);
+                //int balance = (int)(ImageScroll.VerticalOffset % height);
                 //int balance = (int)nowShowImageOffset;
                 //if (balance < 50)
-                if (ImageBoxScroll.VerticalOffset % 50 <= 10)
+                if (ImageScroll.VerticalOffset % 50 <= 10)
                 {
                     //int nowIndex = GetIndex();
-                    if (ImageList[PrePrevPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded && nowShowIndex - PrePrevPageIndex < PrestrainSize)
+                    if (ImageList[PrePrevPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded &&
+                        nowShowIndex - PrePrevPageIndex < PrestrainSize)
                     {
                         CreateTask(LoadPrev);
                     }
-                    if (ImageList[PreNextPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded && PreNextPageIndex - nowShowIndex < PrestrainSize)
+                    if (ImageList[PreNextPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded &&
+                        PreNextPageIndex - nowShowIndex < PrestrainSize)
                     {
                         CreateTask(LoadNext);
                     }
@@ -221,7 +221,7 @@ namespace EHentai.uwp
         /// <returns></returns>
         private int GetIndex()
         {
-            double dVer = ImageBoxScroll.VerticalOffset;
+            double dVer = ImageScroll.VerticalOffset;
 
             var loadeds = ImageList.Where(x => x.ImageLoadState == EnumLoadState.Loaded && x.Height != null).ToList();
 
@@ -368,27 +368,38 @@ namespace EHentai.uwp
         {
             try
             {
-                Image img = sender as Image;
-
-                img.MinHeight = 0;
-                var model = img.Tag as ImageListModel;
-                model.Height = img.ActualHeight;
-                //if (height == 0)
-                //{
-                //    height = img.ActualHeight;
-                //}
-                if (model.Order == EnumOrder.Prev)
+                if (ImageScroll == null)
                 {
-                    ImageBoxScroll.ScrollToVerticalOffset(GetNowShowImageHeight() +
-                                                          nowShowImageOffsetScale*img.ActualHeight);
-
-                    //ImageBoxScroll.ScrollToVerticalOffset(ImageBoxScroll.VerticalOffset + img.ActualHeight);
+                    ImageScroll = ImageListBox.GetChildControl<ScrollViewer>();
                 }
+                else
+                {
+                    Image img = sender as Image;
+
+                    img.MinHeight = 0;
+                    var model = img.Tag as ImageListModel;
+
+                    if (!(model.Height > 0))
+                    {
+                        model.Height = img.ActualHeight;
+                        //if (height == 0)
+                        //{
+                        //    height = img.ActualHeight;
+                        //}
+                        if (model.Order == EnumOrder.Prev)
+                        {
+                            ImageScroll.ScrollToVerticalOffset(GetNowShowImageHeight() +
+                                                               nowShowImageOffsetScale * img.ActualHeight);
+
+                            //ImageScroll.ScrollToVerticalOffset(ImageScroll.VerticalOffset + img.ActualHeight);
+                        }
+                    }
+                }
+
             }
             catch (Exception ex)
             {
             }
-
         }
 
         /// <summary>
@@ -416,6 +427,19 @@ namespace EHentai.uwp
                         ShowNextLoadedImage();
                         break;
                 }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private void Image_OnPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            try
+            {
+                Image img = sender as Image;
+                var urls = (img.Source as BitmapImage).UriSource.Segments;
+                ImageViewPage.Create(urls[urls.Length - 1], img.ActualWidth, img.ActualHeight);
             }
             catch (Exception ex)
             { }

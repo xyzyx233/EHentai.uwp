@@ -5,8 +5,7 @@
     xmlns:local="using:EHentai.uwp"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" >
-    <Grid>
-        <WebView x:Name="HomeView" Source="ms-appx-web:///Html/HomePage.html" AllowDrop="True" DragOver="HomeView_OnDragOver"  Visibility="Visible"></WebView>
+    mc:Ignorable="d" Loaded="HomePage_OnLoaded">
+    <Grid x:Name="MainGrid">
     </Grid>
 </local:ImagePage>

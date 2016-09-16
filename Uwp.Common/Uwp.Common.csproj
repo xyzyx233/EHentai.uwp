@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{70EC43A2-D571-4DE7-9CD2-2D0CECE6283F}</ProjectGuid>
+    <ProjectGuid>{01BCB284-B457-469A-9B4C-592F6A4C0635}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Uwp.Control</RootNamespace>
-    <AssemblyName>Uwp.Control</AssemblyName>
+    <RootNamespace>Uwp.Common</RootNamespace>
+    <AssemblyName>Uwp.Common</AssemblyName>
     <DefaultLanguage>zh-CN</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
@@ -107,30 +107,15 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Model\PivotContent.cs" />
-    <Compile Include="Model\PivotViewModel.cs" />
-    <Compile Include="PivotTemplate.cs" />
-    <Compile Include="WrapPanel\OrientedSize.cs" />
-    <Compile Include="WrapPanel\WrapPanel.cs" />
+    <Compile Include="FileHelper.cs" />
+    <Compile Include="Extend\ControlExtension.cs" />
+    <Compile Include="Extend\ObservableCollectionExtend.cs" />
+    <Compile Include="Extend\PivotExtend.cs" />
+    <Compile Include="Extend\StringExtend.cs" />
+    <Compile Include="NotifyPropertyChanged.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Properties\Uwp.Control.rd.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Resource\Icon.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Page>
-    <Page Include="Resource\ListBoxTemplate.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Page>
-    <Page Include="Resource\PivotTemplate.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Page>
+    <Compile Include="ScreenResolution.cs" />
+    <EmbeddedResource Include="Properties\Uwp.Common.rd.xml" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0' ">
     <VisualStudioVersion>15.0</VisualStudioVersion>

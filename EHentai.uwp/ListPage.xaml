@@ -15,13 +15,13 @@
                     <DataTemplate>
                         <Grid Background="Transparent"  Tag="{Binding}" Margin="0" Padding="0">
                             <Image Source="{Binding Image,Mode=TwoWay}" Stretch="Uniform" VerticalAlignment="Top"  Tag="{Binding}" Visibility="{Binding Visibility,Mode=TwoWay}"
-                               SizeChanged="FrameworkElement_OnSizeChanged"/>
+                               SizeChanged="FrameworkElement_OnSizeChanged" PointerPressed="Image_OnPointerPressed"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <VirtualizingStackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0"/>
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ListBox>

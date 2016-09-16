@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using EHentai.uwp.Common;
+using Uwp.Common.Extend;
 
 namespace EHentai.uwp.Model
 {

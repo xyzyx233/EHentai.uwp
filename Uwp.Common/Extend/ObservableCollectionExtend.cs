@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace EHentai.uwp.Extend
+namespace Uwp.Common.Extend
 {
     public static class ObservableCollectionExtend
     {
