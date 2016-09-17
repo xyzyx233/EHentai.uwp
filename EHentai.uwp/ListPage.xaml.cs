@@ -371,6 +371,7 @@ namespace EHentai.uwp
                 if (ImageScroll == null)
                 {
                     ImageScroll = ImageListBox.GetChildControl<ScrollViewer>();
+                    ImageScroll.ViewChanged += ImageScroll_ViewChanged;
                 }
                 else
                 {

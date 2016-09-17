@@ -260,8 +260,8 @@ namespace EHentai.uwp
         {
             if (View != null)
             {
-                string js = @"window.onscroll = function() { var scrollTop = $(window).scrollTop(); var contentHeight = $('#content').height(); var windowHeight = $(window).height(); if (scrollTop + windowHeight > contentHeight - " + LoadSize + ") { var data = { method: 'Scroll', data: scrollTop }; window.external.notify(JSON.stringify(data)); } };";
-                await View.InvokeScriptAsync("eval", new[] { js });
+                //string js = @"window.onscroll = function() { var scrollTop = $(window).scrollTop(); var contentHeight = $('#content').height(); var windowHeight = $(window).height(); if (scrollTop + windowHeight > contentHeight - " + LoadSize + ") { var data = { method: 'Scroll', data: scrollTop }; window.external.notify(JSON.stringify(data)); } };";
+                await View.InvokeScriptAsync("eval", new[] { $"loadSize={LoadSize};" });
                 View.ScriptNotify += View_ScriptNotify;
             }
         }

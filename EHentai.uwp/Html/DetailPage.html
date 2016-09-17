@@ -105,7 +105,7 @@
             data.ImageUrl = "http://85.17.73.31/18/94/1894d57b4c664e6549d387f6aef24c823b4a0bde-1811817-3893-2769-jpg11_l.jpg";
             ImageList.push(data);
 
-            for (var i = 0; i < 10; i++) {
+            for (var i = 0; i < 30; i++) {
                 var data = new ImageListModel();
                 data.Visibility = true;
                 data.Index = 0;
@@ -117,7 +117,9 @@
             }
         }
 
-        //ini();
+       
+      
+        ini();
     </script>
 
 </head>
@@ -171,7 +173,7 @@
             </md-sidenav>
 
             <!--图片内容-->
-            <md-content flex id="content">
+            <md-content flex id="content" onscroll="imageScroll();">
                 <!--加载动画-->
                 <div style="position: absolute; height: 100%; width: 100%;" ng-if="isLoading">
                     <md-progress-circular id="myDialog" md-mode="indeterminate" class="md-accent" style="position: absolute; top: 50%; left: 50%; z-index: 99999"></md-progress-circular>

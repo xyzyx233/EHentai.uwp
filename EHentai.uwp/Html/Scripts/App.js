@@ -2,6 +2,7 @@
 var app;
 var scope;
 var imageWidth;//单个图片元素的宽度
+var loadSize = 700;//加载下一页的距离
 
 
 
@@ -82,6 +83,16 @@ window.onresize = function () {
 $(function () {
     ContentCenter();
 });
+
+function imageScroll() {
+    var scrollTop = $('#content').scrollTop();
+    var contentHeight = $('#divImageList').height();//内容高度
+    var windowHeight = $('#content').height();//可视高度
+    if (scrollTop + windowHeight > contentHeight - loadSize) {
+        var data = { method: 'Scroll', data: scrollTop };
+        window.external.notify(JSON.stringify(data));
+    }
+};
 
 
 
