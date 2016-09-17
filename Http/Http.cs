@@ -58,6 +58,13 @@ namespace Uwp.Http
             return await result.Content.ReadAsStreamAsync();
         }
 
+        public async Task<byte[]> GetBtyeAsync(string url)
+        {
+            var result = await Client.SendAsync(GetRequest(url));
+            result.EnsureSuccessStatusCode();
+            return await result.Content.ReadAsByteArrayAsync();
+        }
+
         public async Task<SoftwareBitmap> DownloadImage(string url)
         {
             try

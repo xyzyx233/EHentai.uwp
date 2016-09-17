@@ -147,9 +147,10 @@ namespace EHentai.uwp
         /// 获取当前url下的html对象
         /// </summary>
         /// <returns></returns>
-        public HtmlDocument GetHtml()
+        public HtmlNode GetHtmlNode(string url = null)
         {
-            return GetHtmlDocument(Site.GetStringAsync(GetNowPageUrl()).Result);
+            string html = Site.GetStringAsync(string.IsNullOrEmpty(url) ? GetNowPageUrl() : url).Result;
+            return GetHtmlDocument(html).DocumentNode;
         }
 
         public async void GetImage(ImageListModel item, CancellationTokenSource isCancel = null)

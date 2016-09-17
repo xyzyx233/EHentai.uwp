@@ -130,7 +130,7 @@ namespace EHentai.uwp
                     if (IsFirst)
                     {
                         //获取html对象
-                        document = GetHtml().DocumentNode;
+                        document = GetHtmlNode();
 
                         //总记录数量
                         var countStr = document.SelectSingleNode("//*[@class=\"ip\"]").InnerHtml.Split(' ');
@@ -144,7 +144,7 @@ namespace EHentai.uwp
                     else
                     {
                         if (!IsLoaded)
-                            document = GetHtml().DocumentNode;
+                            document = GetHtmlNode();
                         else
                             return datas;
                     }

@@ -57,7 +57,7 @@ namespace EHentai.uwp
                     {
                         //ImageGrid.ShowLoading();
 
-                        var document = GetHtml().DocumentNode;
+                        var document = GetHtmlNode();
 
                         //string enTitle = document.FindFirst("#i1 h1").InnerHtml();//标题
                         //var tab = MainModel.TabContents.First(x => x.Content == this);

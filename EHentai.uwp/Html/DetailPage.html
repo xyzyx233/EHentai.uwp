@@ -18,6 +18,7 @@
 
     <!-- Angular Material Library -->
     <script src="Scripts/AngularMaterial/angular-material.min.js"></script>
+    <script src="Scripts/svg.js"></script>
 
     <!-- jquery -->
     <script src="Scripts/jquery-3.1.0.min.js"></script>
@@ -27,32 +28,74 @@
 
 
     <script>
+        var torrentList = new Array();
+        imageWidth = 220;
         app = angular.module('myApp', ['ngMaterial', 'ngAnimate']);
 
+        //设置图标
+        app.run(function ($templateCache) {
+            angular.forEach(assetMap, function (value, key) {
+                $templateCache.put(key, value);
+            });
+        });
+
+        //设置主题
         app.config(function ($mdThemingProvider) {
             $mdThemingProvider.theme('myTheme')
-              .primaryPalette('blue')
-              .accentPalette('indigo')
-              .warnPalette('red');
+                .primaryPalette('grey')
+                .accentPalette('blue')
+                .warnPalette('red');
             $mdThemingProvider.alwaysWatchTheme(true);
         });
 
-        app.controller('myCtrl', function ($scope) {
+        //初始参数
+        app.controller('myCtrl', function ($scope, $mdSidenav, $mdDialog) {
             scope = $scope;
+            $scope.theme = 'myTheme';
+            $scope.primary = 'blue';
             $scope.enTitle = "";
             $scope.jpTitle = "";
-            $scope.primary = 'blue';
             $scope.ImageList = ImageList;
+            $scope.torrentList = torrentList;
+            $scope.isLoading = true;
+            $scope.hasTorrentDown = false;//是否可以下载种子文件
             $scope.ToListPage = function (model) {
                 var data = { method: 'ToListPage', data: model };
                 window.external.notify(JSON.stringify(data));
-            }
+            };
+            $scope.DownTorrent = function (url) {
+                var data = { method: 'DownTorrent', data: url };
+                window.external.notify(JSON.stringify(data));
+            };
+            $scope.toggleSidenav = function (menuId) {
+                $mdSidenav(menuId).toggle();
+            };
+            var originatorEv;
+            this.openMenu = function ($mdOpenMenu, ev) {
+                originatorEv = ev;
+                $mdOpenMenu(ev);
+            };
         });
 
-
-
+        //添加种子下载项
+        function addTorrent(torrents) {
+            if (torrents) {
+                scope.hasTorrentDown = true;
+                var datas = JSON.parse(torrents);
+                for (var i = 0; i < datas.length; i++) {
+                    var data = datas[i];
+                    torrentList.push(data);
+                }
+                scope.$apply();
+            }
+        }
 
         function ini() {
+
+            torrentList.push(
+                JSON
+                    .parse('{"Name":"(C85) [Aiirosakura (Aikawa Ryou)] Kuubo Wo-Kyuu-chan no Shimakaze Yuri Dorei Choukyou 1 | Standard Carrier Wo-Class Shimakazes Yuri Slave Training 1 (Kantai Collection) [English] [B.E.C. Scans]","DownUrl":"http://ehtracker.org/t/977145/0722729572c5af0b26cb396fa9342647ae893d85.torrent?p=1474113824","Posted":" 2016-09-17 10:44","Size":" 25.84 MB","Seeds":" 33","Peers":" 26","Downloads":" 45","Uploader":" sc01a"}'));
+
             var data = new ImageListModel();
             data.Visibility = true;
             data.Index = 0;
@@ -79,21 +122,73 @@
 
 </head>
 <body>
-    <div ng-app="myApp" ng-controller="myCtrl">
-        <md-content id="content">
-            <div style="width: 100%; height: 30px;" layout="row" layout-align="center center">
-                {{enTitle}}
+    <!--Angular App-->
+    <div layout="column" ng-app="myApp" ng-controller="myCtrl as ctrl" md-theme="{{theme}}">
+        <!--顶部菜单-->
+        <md-toolbar style="height: 60px;" layout="row" md-colors="{background: 'grey-A100'}">
+            <div class="md-toolbar-tools">
+                <!--左侧菜单按钮-->
+                <md-button class="md-icon-button" aria-label="Toggle Menu" ng-click="toggleSidenav('left')">
+                    <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+                </md-button>
+                <!--标题-->
+                <div id="divTitle" style="text-align: center; width: 100%;">
+                    <h5 style="margin: 0; line-height: 30px;">{{enTitle}}</h5>
+                    <h5 style="margin: 0; line-height: 30px;">{{jpTitle}}</h5>
+                </div>
+                <span flex></span>
+                <!--下载菜单-->
+                <md-menu>
+                    <md-button ng-disabled="!hasTorrentDown" aria-label="Down" class="md-icon-button" ng-click="ctrl.openMenu($mdOpenMenu, $event)">
+                        <md-icon md-menu-origin md-svg-icon="img/icons/more_vert.svg"></md-icon>
+                    </md-button>
+                    <md-menu-content style="width: 500px; max-height: 1000px; padding: 0;">
+                        <md-menu-item style="position: relative; height: 100px;" ng-repeat="item in torrentList" md-colors="{background: '{{primary}}-500'}">
+                            <md-button ng-click="DownTorrent(item.DownUrl)">
+                                <i class="material-icons" style="position: absolute; top: 40%;">file_download</i>
+                                <div style="position: absolute; left: 10%; top: 0; width: 100%; height: 100%;">
+                                    <div style="width: 90%;" layout="row">
+                                        <p style="margin-left: 0;">上传日期:{{item.Posted}}</p>
+                                        <p>大小:{{item.Size}}</p>
+                                        <p>下载数:{{item.Downloads}}</p>
+                                    </div>
+                                    <div style="width: 90%; margin-top: -5px;">
+                                        <h4 style="margin: 0;white-space: normal;">{{item.Name}}</h4>
+                                    </div>
+                                </div>
+                            </md-button>
+                        </md-menu-item>
+                    </md-menu-content>
+                </md-menu>
             </div>
-            <div style="width: 100%; height: 30px;" layout="row" layout-align="center center">
-                {{jpTitle}}
-            </div>
-            <div class="ImageList" style="width: 220px;" ng-repeat="ele in ImageList">
-                <md-card ng-style="{'min-height': {{ele.Height}}+30+'px'}" style="position: relative;">
-                    <img ng-src="{{ele.ImageUrl}}" ng-show="{{ele.Visibility}}" ng-click="ToListPage(ele)" style="width: 100%; max-height: 400px">
-                    <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0;" md-colors="{background: '{{primary}}-500'}">{{ele.Index}}</span>
-                </md-card>
-            </div>
-        </md-content>
+        </md-toolbar>
+
+        <!--内容-->
+        <div layout="row" flex class="change-my-css">
+            <!--左侧菜单内容-->
+            <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('')">
+
+            </md-sidenav>
+
+            <!--图片内容-->
+            <md-content flex id="content">
+                <!--加载动画-->
+                <div style="position: absolute; height: 100%; width: 100%;" ng-if="isLoading">
+                    <md-progress-circular id="myDialog" md-mode="indeterminate" class="md-accent" style="position: absolute; top: 50%; left: 50%; z-index: 99999"></md-progress-circular>
+                    <!--<md-backdrop class="md-sidenav-backdrop md-opaque ng-scope md-myTheme-theme"> </md-backdrop>-->
+                </div>
+
+                <!--图片列表-->
+                <div id="divImageList" style="margin: 0 auto;">
+                    <div class="ImageList" style="width: 220px;" ng-repeat="ele in ImageList">
+                        <md-card ng-style="{'min-height': {{ele.Height}}+'px'}" style="position: relative;">
+                            <img ng-src="{{ele.ImageUrl}}" ng-show="{{ele.Visibility}}" ng-click="ToListPage(ele)" style="width: 100%; max-height: 400px">
+                            <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0;" md-colors="{background: '{{primary}}-500'}">{{ele.Index}}</span>
+                        </md-card>
+                    </div>
+                </div>
+            </md-content>
+        </div>
     </div>
 </body>
 </html>

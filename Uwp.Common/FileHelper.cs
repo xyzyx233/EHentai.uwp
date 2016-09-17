@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
 using Windows.Storage.Streams;
 
 namespace Uwp.Common
@@ -13,6 +16,11 @@ namespace Uwp.Common
     public class FileHelper
     {
         public static StorageFolder LoaclFolder = ApplicationData.Current.LocalFolder;
+        
+        public static FileSavePicker Savepicker
+        {
+            get { return GetClass<FileSavePicker>("DownPath").Result; }
+        }
 
         /// <summary>
         /// 获取文件夹
@@ -214,5 +222,73 @@ namespace Uwp.Common
             }
         }
 
+        public static async void DownFile(string fileName, byte[] fileBytes, string extension = "")
+        {
+            try
+            {
+                FileSavePicker savepicker = Savepicker ?? new FileSavePicker();
+                savepicker.SuggestedStartLocation = PickerLocationId.Desktop;
+                savepicker.DefaultFileExtension = extension;
+                savepicker.SuggestedFileName = fileName;
+                savepicker.FileTypeChoices.Add(extension.Replace(".", ""), new List<string> { extension });
+
+                StorageFile file = await savepicker.PickSaveFileAsync();
+                if (file != null)
+                {
+
+                    CachedFileManager.DeferUpdates(file);
+                    await FileIO.WriteBytesAsync(file, fileBytes);
+
+                    FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(file);
+
+                    //SaveClass(savepicker, "DownPath");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        private static async void SaveClass<T>(T t, string fileName)
+        {
+            try
+            {
+                DataContractSerializer serializer = new DataContractSerializer(typeof(T));
+                StorageFolder storageFolder = LoaclFolder;
+                var oldFile = storageFolder.TryGetItemAsync(fileName).GetResults();
+                if (oldFile != null)
+                {
+                    await oldFile.DeleteAsync();
+                }
+                StorageFile file = await storageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists);
+                using (Stream stream = await file.OpenStreamForWriteAsync())
+                {
+                    serializer.WriteObject(stream, t);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        private static async Task<T> GetClass<T>(string fileName)
+        {
+            try
+            {
+                DataContractSerializer serializer = new DataContractSerializer(typeof(T));
+                StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
+                StorageFile file = await storageFolder.GetFileAsync(fileName);
+                using (Stream stream = await file.OpenStreamForReadAsync())
+                {
+                    return (T)serializer.ReadObject(stream);
+                }
+            }
+            catch (Exception e)
+            {
+                return default(T);
+            }
+        }
     }
 }
