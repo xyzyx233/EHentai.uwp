@@ -74,45 +74,59 @@ namespace EHentai.uwp
 
         private async void GetDown()
         {
-            Torrents = await GetTorrent();
-
-            if (Torrents.Any())
+            try
             {
-                string js = Torrents.ToJsonString();
-                await View.InvokeScriptAsync("addTorrent", new[] { js });
+                Torrents = await GetTorrent();
+
+                if (Torrents.Any())
+                {
+                    string js = Torrents.ToJsonString();
+                    await View.InvokeScriptAsync("addTorrent", new[] { js });
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage(ex.Message);
             }
         }
 
         private async void ShowData(ObservableCollection<ImageListModel> datas)
         {
-            string js;
-            if (IsFirst)
+            try
             {
-                //设置标题
-                js = $"scope.enTitle='{enTitle.Replace("\"", "\\\"")}'; scope.jpTitle='{jpTitle.Replace("\"", "\\\"")}'; scope.$apply();";
-                await View.InvokeScriptAsync("eval", new[] { js });
+                string js;
+                if (IsFirst)
+                {
+                    //设置标题
+                    js = $"scope.enTitle='{enTitle.Replace("'", "\\'")}'; scope.jpTitle='{jpTitle.Replace("'", "\\'")}'; scope.$apply();";
+                    await View.InvokeScriptAsync("eval", new[] { js });
 
+                }
+                IsLoadNextPage = false;
+
+                if (datas.Any())
+                {
+                    NowImageCount += datas.Count;
+                    //将当前页数据转为json格式的字符串
+                    js = datas.ToJsonString();
+                    //将数据添加到前台页面
+                    await View.InvokeScriptAsync("AddImages", new[] { js });
+
+                    NowPageIndex++;
+                }
+
+                if (IsFirst)
+                {
+                    IsFirst = false;
+                    IsLoadNextPage = true;
+
+                    datas = await GetNowPageData();
+                    ShowData(datas);
+                }
             }
-            IsLoadNextPage = false;
-
-            if (datas.Any())
+            catch (Exception ex)
             {
-                NowImageCount += datas.Count;
-                //将当前页数据转为json格式的字符串
-                js = datas.ToJsonString();
-                //将数据添加到前台页面
-                await View.InvokeScriptAsync("AddImages", new[] { js });
-
-                NowPageIndex++;
-            }
-
-            if (IsFirst)
-            {
-                IsFirst = false;
-                IsLoadNextPage = true;
-
-                datas = await GetNowPageData();
-                ShowData(datas);
+                ShowMessage(ex.Message);
             }
         }
 
@@ -208,7 +222,8 @@ namespace EHentai.uwp
                         foreach (HtmlNode node in items)
                         {
                             Torrent torrent = new Torrent();
-                            var spans = node.SelectNodes("//span");
+                            string aa = "//span";
+                            var spans = node.SelectNodes(aa);
                             var a = node.SelectSingleNode("//a");
                             torrent.Posted = spans.FirstOrDefault(x => x.InnerHtml == "Posted:").NextSibling.InnerText;
                             torrent.Size = spans.FirstOrDefault(x => x.InnerHtml == "Size:").NextSibling.InnerText;
@@ -232,12 +247,6 @@ namespace EHentai.uwp
             });
         }
 
-        private void ModelGetImageUrl(object sender, EventArgs e)
-        {
-            var model = sender as ImageListModel;
-            GetImageBase64Async(model);
-        }
-
         private async void View_ScriptNotify(object sender, NotifyEventArgs e)
         {
             try
@@ -256,7 +265,7 @@ namespace EHentai.uwp
                         case "DownTorrent":
                             var torrent = Torrents.First(x => x.DownUrl == data);
                             var file = await Http.GetBtyeAsync(data);
-                            FileHelper.DownFile(torrent.Name, file, ".torrent");
+                            AppSettings.DownPath = await FileHelper.DownFile(torrent.Name + ".torrent", file, AppSettings.DownPath);
                             break;
                     }
                 }

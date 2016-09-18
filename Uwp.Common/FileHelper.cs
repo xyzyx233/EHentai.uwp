@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.Storage.Provider;
 using Windows.Storage.Streams;
@@ -16,11 +17,6 @@ namespace Uwp.Common
     public class FileHelper
     {
         public static StorageFolder LoaclFolder = ApplicationData.Current.LocalFolder;
-        
-        public static FileSavePicker Savepicker
-        {
-            get { return GetClass<FileSavePicker>("DownPath").Result; }
-        }
 
         /// <summary>
         /// 获取文件夹
@@ -222,35 +218,61 @@ namespace Uwp.Common
             }
         }
 
-        public static async void DownFile(string fileName, byte[] fileBytes, string extension = "")
+        #region 下载文件
+        /// <summary>
+        /// 下载文件到指定路径
+        /// </summary>
+        /// <param name="fileName">文件名(包含后缀)</param>
+        /// <param name="fileBytes">文件字节</param>
+        /// <param name="downPath">下载路径(规定格式StorageApplicationPermissions.FutureAccessList.GetFolderAsync(downPath))</param>
+        public static async Task<string> DownFile(string fileName, byte[] fileBytes, string downPath)
         {
             try
             {
-                FileSavePicker savepicker = Savepicker ?? new FileSavePicker();
-                savepicker.SuggestedStartLocation = PickerLocationId.Desktop;
-                savepicker.DefaultFileExtension = extension;
-                savepicker.SuggestedFileName = fileName;
-                savepicker.FileTypeChoices.Add(extension.Replace(".", ""), new List<string> { extension });
+                StorageFolder folder;
+                if (string.IsNullOrEmpty(downPath))
+                {
+                    FolderPicker folderPicker = new FolderPicker();
+                    folderPicker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+                    folderPicker.FileTypeFilter.Add("*");
+                    folderPicker.ViewMode = PickerViewMode.Thumbnail;
 
-                StorageFile file = await savepicker.PickSaveFileAsync();
+                    folder = await folderPicker.PickSingleFolderAsync();
+
+                    downPath = StorageApplicationPermissions.FutureAccessList.Add(folder);
+                }
+                else
+                {
+                    folder = await StorageApplicationPermissions.FutureAccessList.GetFolderAsync(downPath);
+                }
+
+                //判断文件是否存在 存在则删除
+                var oldFile = await folder.TryGetItemAsync(fileName);
+                if (oldFile != null)
+                {
+                    await oldFile.DeleteAsync();
+                }
+
+                StorageFile file = await folder.CreateFileAsync(fileName);
                 if (file != null)
                 {
+
 
                     CachedFileManager.DeferUpdates(file);
                     await FileIO.WriteBytesAsync(file, fileBytes);
 
                     FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(file);
-
-                    //SaveClass(savepicker, "DownPath");
                 }
+                return downPath;
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
+        #endregion
 
-        private static async void SaveClass<T>(T t, string fileName)
+        public static async void SaveClass<T>(T t, string fileName)
         {
             try
             {
@@ -273,7 +295,7 @@ namespace Uwp.Common
             }
         }
 
-        private static async Task<T> GetClass<T>(string fileName)
+        public static async Task<T> GetClass<T>(string fileName)
         {
             try
             {

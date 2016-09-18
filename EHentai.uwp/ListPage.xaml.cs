@@ -55,17 +55,8 @@ namespace EHentai.uwp
                 {
                     if (IsFirst)
                     {
-                        //ImageGrid.ShowLoading();
-
                         var document = GetHtmlNode();
-
-                        //string enTitle = document.FindFirst("#i1 h1").InnerHtml();//标题
-                        //var tab = MainModel.TabContents.First(x => x.Content == this);
-                        //if (tab.Header == null)
-                        //{
-                        //    tab.Header = enTitle;
-                        //}
-
+                        
                         PageMax =
                             ImageCount =
                                 int.Parse(

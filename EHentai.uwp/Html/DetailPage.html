@@ -60,6 +60,7 @@
             $scope.isLoading = true;
             $scope.hasTorrentDown = false;//是否可以下载种子文件
             $scope.ToListPage = function (model) {
+                model.Title = scope.enTitle;
                 var data = { method: 'ToListPage', data: model };
                 window.external.notify(JSON.stringify(data));
             };
@@ -96,6 +97,11 @@
                 JSON
                     .parse('{"Name":"(C85) [Aiirosakura (Aikawa Ryou)] Kuubo Wo-Kyuu-chan no Shimakaze Yuri Dorei Choukyou 1 | Standard Carrier Wo-Class Shimakazes Yuri Slave Training 1 (Kantai Collection) [English] [B.E.C. Scans]","DownUrl":"http://ehtracker.org/t/977145/0722729572c5af0b26cb396fa9342647ae893d85.torrent?p=1474113824","Posted":" 2016-09-17 10:44","Size":" 25.84 MB","Seeds":" 33","Peers":" 26","Downloads":" 45","Uploader":" sc01a"}'));
 
+            torrentList.push(
+             JSON
+                 .parse('{"Name":"(C85) [Aiirosakura (Aikawa Ryou)] Kuubo Wo-Kyuu-chan no Shimakaze Yuri Dorei Choukyou 1 | Standard Carrier Wo-Class Shimakazes Yuri Slave Training 1 (Kantai Collection) [English] [B.E.C. Scans]","DownUrl":"http://ehtracker.org/t/977145/0722729572c5af0b26cb396fa9342647ae893d85.torrent?p=1474113824","Posted":" 2016-09-17 10:44","Size":" 25.84 MB","Seeds":" 33","Peers":" 26","Downloads":" 45","Uploader":" sc01a"}'));
+
+
             var data = new ImageListModel();
             data.Visibility = true;
             data.Index = 0;
@@ -105,7 +111,7 @@
             data.ImageUrl = "http://85.17.73.31/18/94/1894d57b4c664e6549d387f6aef24c823b4a0bde-1811817-3893-2769-jpg11_l.jpg";
             ImageList.push(data);
 
-            for (var i = 0; i < 30; i++) {
+            for (var i = 0; i < 10; i++) {
                 var data = new ImageListModel();
                 data.Visibility = true;
                 data.Index = 0;
@@ -119,7 +125,7 @@
 
        
       
-        ini();
+        //ini();
     </script>
 
 </head>
@@ -134,16 +140,18 @@
                     <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
                 </md-button>
                 <!--标题-->
-                <div id="divTitle" style="text-align: center; width: 100%;">
+                <div id="divTitle" style="text-align: center; width: 100%; height: 100%; overflow: hidden;">
                     <h5 style="margin: 0; line-height: 30px;">{{enTitle}}</h5>
                     <h5 style="margin: 0; line-height: 30px;">{{jpTitle}}</h5>
                 </div>
                 <span flex></span>
                 <!--下载菜单-->
                 <md-menu>
+                    <!--菜单图标-->
                     <md-button ng-disabled="!hasTorrentDown" aria-label="Down" class="md-icon-button" ng-click="ctrl.openMenu($mdOpenMenu, $event)">
                         <md-icon md-menu-origin md-svg-icon="img/icons/more_vert.svg"></md-icon>
                     </md-button>
+                    <!--下载内容-->
                     <md-menu-content style="width: 500px; max-height: 1000px; padding: 0;">
                         <md-menu-item style="position: relative; height: 100px;" ng-repeat="item in torrentList" md-colors="{background: '{{primary}}-500'}">
                             <md-button ng-click="DownTorrent(item.DownUrl)">
@@ -155,7 +163,7 @@
                                         <p>下载数:{{item.Downloads}}</p>
                                     </div>
                                     <div style="width: 90%; margin-top: -5px;">
-                                        <h4 style="margin: 0;white-space: normal;">{{item.Name}}</h4>
+                                        <h4 style="margin: 0; white-space: normal;">{{item.Name}}</h4>
                                     </div>
                                 </div>
                             </md-button>
@@ -185,7 +193,7 @@
                     <div class="ImageList" style="width: 220px;" ng-repeat="ele in ImageList">
                         <md-card ng-style="{'min-height': {{ele.Height}}+'px'}" style="position: relative;">
                             <img ng-src="{{ele.ImageUrl}}" ng-show="{{ele.Visibility}}" ng-click="ToListPage(ele)" style="width: 100%; max-height: 400px">
-                            <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0;" md-colors="{background: '{{primary}}-500'}">{{ele.Index}}</span>
+                            <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0; opacity: 0.3; background-color: black; color: white;" >{{ele.Index}}</span>
                         </md-card>
                     </div>
                 </div>

@@ -97,6 +97,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="BasePage.cs" />
+    <Compile Include="Common\AppSettings.cs" />
     <Compile Include="Common\CookieHelper.cs" />
     <Compile Include="Common\ImageCache.cs" />
     <Compile Include="Common\ImageDecoder.cs" />

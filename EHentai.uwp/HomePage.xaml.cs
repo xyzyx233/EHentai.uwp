@@ -151,20 +151,24 @@ namespace EHentai.uwp
 
                     var divs = document.SelectNodes("//*[@class=\"id3\"]");
 
-                    foreach (var div in divs)
+                    if (divs!=null&& divs.Any())
                     {
-                        ImageListModel model = new ImageListModel();
+                        foreach (var div in divs)
+                        {
+                            ImageListModel model = new ImageListModel();
 
-                        //model.GetImageUrl += ModelGetImageUrl;
-                        var a = div.FirstChild;
+                            //model.GetImageUrl += ModelGetImageUrl;
+                            var a = div.FirstChild;
 
-                        var img = a.FirstChild;
-                        model.Title = img.Attributes["title"].Value;
-                        model.Herf = a.Attributes["href"].Value;
-                        model.CacheName = model.Herf.GetValidFileName() + ".jpg";
-                        model.ImageUrl = img.Attributes["src"].Value;
-                        datas.Add(model);
+                            var img = a.FirstChild;
+                            model.Title = img.Attributes["title"].Value;
+                            model.Herf = a.Attributes["href"].Value;
+                            model.CacheName = model.Herf.GetValidFileName() + ".jpg";
+                            model.ImageUrl = img.Attributes["src"].Value;
+                            datas.Add(model);
+                        }
                     }
+                   
 
                     return datas;
                 }
