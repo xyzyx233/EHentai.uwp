@@ -8,7 +8,7 @@
     mc:Ignorable="d" AllowDrop="True" Drop="MainPage_OnDrop" DragOver="MainPage_OnDragOver">
 
     <Grid x:Name="MainGrid">
-        <Button x:Name="hideButton" Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}" Click="ButtonBase_OnClick" Opacity="0">LIGHT</Button>
+        <Button x:Name="hideButton" Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}" Opacity="0">LIGHT</Button>
         <Pivot x:Name="MainPivot" SelectedIndex="{Binding SelectedIndex,Mode=TwoWay}" ItemsSource="{Binding Contents}" >
             <Pivot.HeaderTemplate>
                 <DataTemplate>

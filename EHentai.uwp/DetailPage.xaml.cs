@@ -222,9 +222,8 @@ namespace EHentai.uwp
                         foreach (HtmlNode node in items)
                         {
                             Torrent torrent = new Torrent();
-                            string aa = "//span";
-                            var spans = node.SelectNodes(aa);
-                            var a = node.SelectSingleNode("//a");
+                            var spans = node.SelectNodes("tr/td/span");
+                            var a = node.SelectSingleNode("tr/td/a");
                             torrent.Posted = spans.FirstOrDefault(x => x.InnerHtml == "Posted:").NextSibling.InnerText;
                             torrent.Size = spans.FirstOrDefault(x => x.InnerHtml == "Size:").NextSibling.InnerText;
                             torrent.Seeds = spans.FirstOrDefault(x => x.InnerHtml == "Seeds:").NextSibling.InnerText;

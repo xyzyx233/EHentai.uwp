@@ -13,6 +13,8 @@ using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media.Imaging;
+using AngleSharp;
+using AngleSharp.Parser.Html;
 using HtmlAgilityPack;
 using Uwp.Common.Extend;
 
@@ -138,6 +140,8 @@ namespace EHentai.uwp
 
         public HtmlDocument GetHtmlDocument(string html)
         {
+            //var document = new HtmlParser().Parse(html);
+            //document.QuerySelector()
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(html);
             return document;

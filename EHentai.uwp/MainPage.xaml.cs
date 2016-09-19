@@ -1,4 +1,5 @@
 ﻿using System;
+using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.UI.ViewManagement;
@@ -20,8 +21,12 @@ namespace EHentai.uwp
 
         public MainPage()
         {
-            var appView = ApplicationView.GetForCurrentView();
-            appView.TryResizeView(new Size(ScreenResolution.Width * 0.85, ScreenResolution.Height * 0.85));
+            
+            //ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
+            ApplicationView.PreferredLaunchViewSize = new Size(ScreenResolution.Width * 0.85, ScreenResolution.Height * 0.85);
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+
+            //var titleBar = CoreApplication.GetCurrentView().TitleBar;
 
             InitializeComponent();
 
@@ -42,7 +47,7 @@ namespace EHentai.uwp
             //    Site.Login();
             //}
 
-
+            
         }
 
         private void User_OnLogined(object sender, EventArgs e)
@@ -64,11 +69,6 @@ namespace EHentai.uwp
         private void MainPage_OnDragOver(object sender, DragEventArgs e)
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
-        }
-
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
-        {
-            PivotView.SelectedIndex = 0;
         }
     }
 }
