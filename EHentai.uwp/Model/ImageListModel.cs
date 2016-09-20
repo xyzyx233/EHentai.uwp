@@ -1,6 +1,7 @@
 ﻿using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
+using EHentai.uwp.Common;
 using Uwp.Common;
 
 namespace EHentai.uwp.Model
@@ -14,7 +15,14 @@ namespace EHentai.uwp.Model
         private string _imageUrl;//图片Url
         public string ImageUrl
         {
-            get { return _imageUrl; }
+            get
+            {
+                //if (ImageCache.HasCache(CacheName).Result)
+                //{
+                //    return _imageUrl = ImageCache.GetImageBase64(CacheName);
+                //}
+                return _imageUrl;
+            }
             set { _imageUrl = value; GetImageUrl?.Invoke(this, EventArgs.Empty); }
         }
         public string Herf { get; set; }//链接

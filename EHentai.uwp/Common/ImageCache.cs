@@ -172,23 +172,23 @@ namespace EHentai.uwp.Common
         //    return await ToBase64(bytes, (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight);
         //}
 
-
         public static string GetImageBase64(string fileName)
         {
-            var names = fileName.Split('.');
-            string type = names[names.Length - 1];
-            var stream = FileHelper.GetFileStream(fileName, CachePath);
-            var bytes = StreamToBytes(stream);
-            return $"data:image/{type};base64," + Convert.ToBase64String(bytes);
+            try
+            {
+                var names = fileName.Split('.');
+                string type = names[names.Length - 1];
+                return $"data:image/{type};base64," + FileHelper.GetImageBase64(fileName, CachePath);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
-        public static byte[] StreamToBytes(Stream stream)
+        public static void SaveImageByBase64(string base64, string fileName)
         {
-            byte[] bytes = new byte[stream.Length];
-            stream.Read(bytes, 0, bytes.Length);
-            // 设置当前流的位置为流的开始
-            stream.Seek(0, SeekOrigin.Begin);
-            return bytes;
+            FileHelper.SaveBase64(base64, fileName, CachePath);
         }
     }
 }

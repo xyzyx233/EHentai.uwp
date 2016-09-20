@@ -84,6 +84,7 @@ $(function () {
     ContentCenter();
 });
 
+//滚动翻页
 function imageScroll() {
     var scrollTop = $('#content').scrollTop();
     var contentHeight = $('#divImageList').height();//内容高度
@@ -94,5 +95,24 @@ function imageScroll() {
     }
 };
 
+//获取图片的Base64
+function getBase64Image(img) {
+
+    var canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
 
 
+    var dataUrl = canvas.toDataURL();
+
+    return dataUrl.replace(/^data:image\/(png|jpg|gif|bmp);base64,/, "");
+}
+//将图片缓存到APP
+function cacheImage(img, model) {
+    model.ImageUrl = getBase64Image(img);
+    var data = { method: 'CacheImage', data: model };
+    window.external.notify(JSON.stringify(data));
+}

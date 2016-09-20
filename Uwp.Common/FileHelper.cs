@@ -159,6 +159,7 @@ namespace Uwp.Common
                 throw ex;
             }
         }
+
         public static async Task<bool> CreateImage(SoftwareBitmap bitmap, string name, string path = "")
         {
             try
@@ -218,7 +219,6 @@ namespace Uwp.Common
             }
         }
 
-        #region 下载文件
         /// <summary>
         /// 下载文件到指定路径
         /// </summary>
@@ -270,7 +270,64 @@ namespace Uwp.Common
                 throw ex;
             }
         }
-        #endregion
+
+        /// <summary>
+        /// 将文件转为Base64字符串
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string GetImageBase64(string fileName, string path = "")
+        {
+            try
+            {
+                using (var stream = GetFileStream(fileName, path))
+                {
+                    var bytes = StreamToBytes(stream);
+                    return Convert.ToBase64String(bytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// 文件流转byte数组
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static byte[] StreamToBytes(Stream stream)
+        {
+            try
+            {
+                byte[] bytes = new byte[stream.Length];
+                stream.Read(bytes, 0, bytes.Length);
+                // 设置当前流的位置为流的开始
+                stream.Seek(0, SeekOrigin.Begin);
+                return bytes;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public static async void SaveBase64(string base64, string fileName, string path = "")
+        {
+            try
+            {
+                byte[] bytes = Convert.FromBase64String(base64);
+                var folder = await GetFolderAsync();
+                var file = await folder.CreateFileAsync(fileName);
+                await FileIO.WriteBytesAsync(file, bytes);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
         public static async void SaveClass<T>(T t, string fileName)
         {

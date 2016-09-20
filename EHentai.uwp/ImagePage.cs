@@ -16,6 +16,8 @@ using Windows.UI.Xaml.Media.Imaging;
 using AngleSharp;
 using AngleSharp.Parser.Html;
 using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
+using Uwp.Common;
 using Uwp.Common.Extend;
 
 namespace EHentai.uwp
@@ -292,10 +294,25 @@ namespace EHentai.uwp
 
         private void View_ScriptNotify(object sender, NotifyEventArgs e)
         {
-            if (e.Value.Contains("Scroll") && !IsLoadNextPage)
+            if (!string.IsNullOrEmpty(e.Value))
             {
-                IsLoadNextPage = true;
-                LoadDataByPage();
+                JObject jsonBody = JObject.Parse(e.Value);
+                string method = jsonBody["method"].ToString();
+                string data = jsonBody["data"].ToString();
+                switch (method)
+                {
+                    case "Scroll":
+                        if (!IsLoadNextPage)
+                        {
+                            IsLoadNextPage = true;
+                            LoadDataByPage();
+                        }
+                        break;
+                    case "CacheImage":
+                        var model = data.ToEntity<ImageListModel>();
+                        ImageCache.SaveImageByBase64(model.ImageUrl, model.CacheName);
+                        break;
+                }
             }
         }
     }

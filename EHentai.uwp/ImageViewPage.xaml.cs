@@ -40,7 +40,7 @@ namespace EHentai.uwp
             _url = url;
             _scale = width / height;
 
-            _height = ScreenResolution.Height / 2.0;
+            _height = (ScreenResolution.Height - 40) / 2.0;
             _width = _height * _scale;
 
             var newCoreAppView = CoreApplication.CreateNewView();
@@ -87,7 +87,7 @@ namespace EHentai.uwp
                 //appView.TitleBar.ButtonHoverBackgroundColor = Colors.Transparent;
 
                 appView.SetPreferredMinSize(new Size(198, 48));
-               
+
                 _height = _height - 28;
 
                 while (!await SetSize())
@@ -108,7 +108,7 @@ namespace EHentai.uwp
         /// <returns></returns>
         public async Task<bool> SetSize()
         {
-            await Task.Delay(5);
+            await Task.Delay(10);
             return ApplicationView.GetForCurrentView().TryResizeView(new Size(_width, _height));
         }
     }
