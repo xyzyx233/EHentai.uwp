@@ -186,6 +186,66 @@ namespace EHentai.uwp.Common
             }
         }
 
+        public static string GetImageBase64(byte[] bytes, string imgType = "jpg")
+        {
+            try
+            {
+                return $"data:image/{imgType.Replace(".", "")};base64," + Convert.ToBase64String(bytes);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public static string GetImageBase64(Stream stream, string imgType = "jpg")
+        {
+            try
+            {
+                var bytes = FileHelper.StreamToBytes(stream);
+                return GetImageBase64(bytes, imgType);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public static async Task<string> GetImageBase64(BitmapDecoder img, string imgType = "jpg")
+        {
+            var pixels = await img.GetPixelDataAsync();
+            var image = pixels.DetachPixelData();
+            // encode image
+            var encoded = new InMemoryRandomAccessStream();
+            Guid encoderId;
+            switch (imgType.Replace(".", ""))
+            {
+                case "jpg":
+                    encoderId = BitmapEncoder.JpegEncoderId;
+                    break;
+                case "png":
+                    encoderId = BitmapEncoder.PngEncoderId;
+                    break;
+                case "bmp":
+                    encoderId = BitmapEncoder.BmpEncoderId;
+                    break;
+                case "gif":
+                    encoderId = BitmapEncoder.GifEncoderId;
+                    break;
+            }
+            var encoder = await BitmapEncoder.CreateAsync(encoderId, encoded);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, img.PixelHeight, img.PixelWidth, img.DpiX, img.DpiY, image);
+            await encoder.FlushAsync();
+            encoded.Seek(0);
+
+            // read bytes
+            var bytes = new byte[encoded.Size];
+            await encoded.AsStream().ReadAsync(bytes, 0, bytes.Length);
+
+            // create base64
+            return $"data:image/{imgType.Replace(".", "")};base64," + Convert.ToBase64String(bytes);
+        }
+
         public static void SaveImageByBase64(string base64, string fileName)
         {
             FileHelper.SaveBase64(base64, fileName, CachePath);
