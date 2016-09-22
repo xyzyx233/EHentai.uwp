@@ -430,7 +430,8 @@ namespace EHentai.uwp
             try
             {
                 Image img = sender as Image;
-                var urls = (img.Source as BitmapImage).UriSource.Segments;
+                var bitmap = img.Source as BitmapImage;
+                var urls = bitmap.UriSource.Segments;
                 ImageViewPage.Create(urls[urls.Length - 1], img.ActualWidth, img.ActualHeight);
             }
             catch (Exception ex)

@@ -45,7 +45,7 @@ namespace EHentai.uwp
             _height = (ScreenResolution.Height - 40) / 2.0;
             _width = _height * _scale;
 
-
+            _height -= 30;
             CreateView();
         }
 

@@ -99,13 +99,13 @@ namespace EHentai.uwp.Common
         {
             try
             {
-                using (var stream = await FileHelper.GetAccessStreamAsync(fileName, CachePath))
-                {
-                    BitmapImage img = new BitmapImage();
-                    img.SetSource(stream);
-                    return img;
-                }
-                //return new BitmapImage(new Uri(FileHelper.LoaclFolder.Path + "\\" + CachePath + "\\" + fileName));
+                //using (var stream = await FileHelper.GetAccessStreamAsync(fileName, CachePath))
+                //{
+                //    BitmapImage img = new BitmapImage();
+                //    img.SetSource(stream);
+                //    return img;
+                //}
+                return new BitmapImage(new Uri(FileHelper.LoaclFolder.Path + "\\" + CachePath + "\\" + fileName));
             }
             catch (Exception ex)
             {
