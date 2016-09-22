@@ -181,7 +181,7 @@ namespace EHentai.uwp
                     {
                         try
                         {
-                            BitmapImage img = await ImageCache.HasCache(item.CacheName) ? ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
+                            BitmapImage img = await ImageCache.HasCache(item.CacheName) ? await ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
 
                             if (img == null)
                             {

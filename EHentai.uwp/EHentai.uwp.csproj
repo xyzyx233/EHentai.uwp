@@ -144,6 +144,7 @@
     <Content Include="Html\Scripts\AngularMaterial\angular.min.js" />
     <Content Include="Html\Scripts\AngularMaterial\css\angular-material.min.css" />
     <Content Include="Html\Scripts\App.js" />
+    <Content Include="Html\Scripts\drop.js" />
     <Content Include="Html\Scripts\Model.js" />
     <Content Include="Html\Scripts\jquery-3.1.0.min.js" />
     <Content Include="Html\Scripts\svg.js" />

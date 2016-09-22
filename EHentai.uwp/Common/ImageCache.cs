@@ -95,18 +95,22 @@ namespace EHentai.uwp.Common
             }
         }
 
-        public static BitmapImage GetImage(string fileName)
+        public static async Task<BitmapImage> GetImage(string fileName)
         {
             try
             {
-                return new BitmapImage(new Uri(FileHelper.LoaclFolder.Path + "\\" + CachePath + "\\" + fileName));
+                using (var stream = await FileHelper.GetAccessStreamAsync(fileName, CachePath))
+                {
+                    BitmapImage img = new BitmapImage();
+                    img.SetSource(stream);
+                    return img;
+                }
+                //return new BitmapImage(new Uri(FileHelper.LoaclFolder.Path + "\\" + CachePath + "\\" + fileName));
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("值不在预期的范围内"))
-                    return ErrorImage;
                 File.Delete(fileName);
-                return null;
+                return ErrorImage;
             }
         }
 
