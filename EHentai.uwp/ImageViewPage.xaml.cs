@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 using EHentai.uwp.Common;
+using EHentai.uwp.Model;
 using Uwp.Common;
 
 // “空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=234238 上有介绍
@@ -32,60 +33,58 @@ namespace EHentai.uwp
     /// </summary>
     public sealed partial class ImageViewPage : Page
     {
-        private static string imgBase64;
-        private static double _scale;
-        private static double _width;
-        private static double _height;
-
-        public static void Create(string url, double width, double height)
+        private ImageViewModel _viewModel;
+        public static void Create(ImageViewModel viewModel)
         {
-            imgBase64 = ImageCache.GetImageBase64(url);
-
-            _scale = width / height;
-            _height = (ScreenResolution.Height - 40) / 2.0;
-            _width = _height * _scale;
-
-            _height -= 30;
-            CreateView();
+            CreateView(viewModel);
         }
 
         public static async void Create(StorageFile file)
         {
-            Guid encoderId;
-            switch (file.FileType)
+            try
             {
-                case ".jpg":
-                    encoderId = BitmapDecoder.JpegDecoderId;
-                    break;
-                case ".png":
-                    encoderId = BitmapDecoder.PngDecoderId;
-                    break;
-                case ".bmp":
-                    encoderId = BitmapDecoder.BmpDecoderId;
-                    break;
-                case ".gif":
-                    encoderId = BitmapDecoder.GifDecoderId;
-                    break;
-            }
-            using (var stream = await file.OpenReadAsync())
-            {
-                var decoder = await BitmapDecoder.CreateAsync(encoderId, stream);
-                _scale = decoder.PixelWidth / (double)decoder.PixelHeight;
-
-                using (var imgStream = stream.AsStream())
+                var viewModel = new ImageViewModel();
+                Guid encoderId;
+                switch (file.FileType)
                 {
-                    imgBase64 = ImageCache.GetImageBase64(imgStream, file.FileType);
+                    case ".jpg":
+                        encoderId = BitmapDecoder.JpegDecoderId;
+                        break;
+                    case ".png":
+                        encoderId = BitmapDecoder.PngDecoderId;
+                        break;
+                    case ".bmp":
+                        encoderId = BitmapDecoder.BmpDecoderId;
+                        break;
+                    case ".gif":
+                        encoderId = BitmapDecoder.GifDecoderId;
+                        break;
                 }
 
+                using (var stream = await file.OpenReadAsync())
+                {
+                    var decoder = await BitmapDecoder.CreateAsync(encoderId, stream);
+
+
+                    viewModel.Width = decoder.PixelWidth;
+                    viewModel.Height = decoder.PixelHeight;
+
+                    using (var imgStream = stream.AsStream())
+                    {
+                        viewModel.ImgBase64 = ImageCache.GetImageBase64(imgStream, file.FileType);
+                    }
+
+                }
+
+                CreateView(viewModel);
             }
-
-            _height = (ScreenResolution.Height - 40) / 2.0;
-            _width = _height * _scale;
-
-            CreateView();
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
-        private static async void CreateView()
+        private static async void CreateView(ImageViewModel viewModel)
         {
             var newCoreAppView = CoreApplication.CreateNewView();
             var appView = ApplicationView.GetForCurrentView();
@@ -97,7 +96,8 @@ namespace EHentai.uwp
                 var frame = new Frame();
                 window.Content = frame;
 
-                frame.Navigate(typeof(ImageViewPage));
+
+                frame.Navigate(typeof(ImageViewPage), viewModel);
                 window.Activate();
                 await
                     ApplicationViewSwitcher.TryShowAsStandaloneAsync(newAppView.Id, ViewSizePreference.Default, appView.Id,
@@ -109,17 +109,16 @@ namespace EHentai.uwp
         {
             try
             {
+                var appView = ApplicationView.GetForCurrentView();
+                appView.SetPreferredMinSize(new Size(198, 48));
+                appView.TitleBar.BackgroundColor = appView.TitleBar.ButtonBackgroundColor = appView.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+                //appView.TitleBar.ButtonHoverBackgroundColor = Colors.Transparent;
                 var titleBar = CoreApplication.GetCurrentView().TitleBar;
                 if (!titleBar.ExtendViewIntoTitleBar)
                 {
                     titleBar.ExtendViewIntoTitleBar = true;//隐藏标题栏
                 }
-                var appView = ApplicationView.GetForCurrentView();
-                appView.TitleBar.BackgroundColor = appView.TitleBar.ButtonBackgroundColor = appView.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-                //appView.TitleBar.ButtonHoverBackgroundColor = Colors.Transparent;
 
-                appView.SetPreferredMinSize(new Size(198, 48));
-                
                 this.InitializeComponent();
                 Loaded += ImageViewPage_OnLoaded;
 
@@ -129,24 +128,29 @@ namespace EHentai.uwp
         }
 
         /// <summary>
-        /// 修改窗体大小(需要暂停1毫秒,不然可能修改失败)
+        /// 修改窗体大小
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> SetSize()
+        public bool SetSize(double width, double height)
         {
-            await Task.Delay(10);
-            return ApplicationView.GetForCurrentView().TryResizeView(new Size(_width, _height));
+            return ApplicationView.GetForCurrentView().TryResizeView(new Size(width, height - 32));
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            _viewModel = e.Parameter as ImageViewModel;
         }
 
         private async void ImageViewPage_OnLoaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                while (!await SetSize())
-                { }
-                string imgStr = $"document.body.innerHTML=\"<img style='width: 100%;' ondragstart='return false' src='{imgBase64}'/> \"";
+
+                string imgStr = $"document.body.innerHTML=\"<img style='width: 100%;' ondragstart='return false' src='{_viewModel.ImgBase64}'/> \"";
                 imgStr = await ImageView.InvokeScriptAsync("eval", new[] { imgStr });
 
+                while (!SetSize(_viewModel.ViewWidth, _viewModel.ViewHeight))
+                { }
             }
             catch (Exception ex)
             { }

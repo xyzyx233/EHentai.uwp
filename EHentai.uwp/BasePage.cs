@@ -29,12 +29,12 @@ namespace EHentai.uwp
 
         private void BasePage_Unloaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            foreach (Task task in Tasks)
-            {
-                task.Wait();
-            }
+            //foreach (Task task in Tasks)
+            //{
+            //    task.Wait();
+            //}
 
-            Tasks.RemoveAll(x => true);
+            //Tasks.RemoveAll(x => true);
         }
 
         public async void ShowMessage(string cotent)

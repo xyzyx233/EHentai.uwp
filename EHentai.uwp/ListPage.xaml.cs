@@ -17,6 +17,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+using EHentai.uwp.Common;
 using Uwp.Common.Extend;
 
 // “空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=234238 上有介绍
@@ -56,7 +57,7 @@ namespace EHentai.uwp
                     if (IsFirst)
                     {
                         var document = GetHtmlNode();
-                        
+
                         PageMax =
                             ImageCount =
                                 int.Parse(
@@ -432,7 +433,11 @@ namespace EHentai.uwp
                 Image img = sender as Image;
                 var bitmap = img.Source as BitmapImage;
                 var urls = bitmap.UriSource.Segments;
-                ImageViewPage.Create(urls[urls.Length - 1], img.ActualWidth, img.ActualHeight);
+                var viewModel = new ImageViewModel();
+                viewModel.ImgBase64 = ImageCache.GetImageBase64(urls[urls.Length - 1]);
+                viewModel.Width = img.ActualWidth;
+                viewModel.Height = img.ActualHeight;
+                ImageViewPage.Create(viewModel);
             }
             catch (Exception ex)
             { }

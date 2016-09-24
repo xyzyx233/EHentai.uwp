@@ -116,3 +116,62 @@ function cacheImage(img, model) {
     var data = { method: 'CacheImage', data: model };
     window.external.notify(JSON.stringify(data));
 }
+
+$(function () {
+    //阻止浏览器默认行。 
+    $(document).on({
+        dragleave: function (e) {    //拖离 
+            e.preventDefault();
+        },
+        drop: function (e) {  //拖后放 
+            e.preventDefault();
+            dorp(e.originalEvent);
+        },
+        dragenter: function (e) {    //拖进 
+            e.preventDefault();
+        },
+        dragover: function (e) {    //拖来拖去 
+            e.preventDefault();
+        }
+    });
+});
+
+function dorp(e) {
+    var files = e.dataTransfer.files; //获取文件对象 
+    //检测是否是拖拽文件到页面的操作 
+    if (files.length == 0) {
+        return false;
+    }
+
+    //遍历所有文件
+    for (var i = 0; i < files.length; i++) {
+        readerImage(files[i]);
+    }
+}
+
+
+function readerImage(file) {
+    //检测文件是不是图片 
+    if (file.type.match(/image*/)) {
+        //读取图片信息
+        var reader = new FileReader();
+        //创建一个Image用来获取图片的尺寸
+        var img = new Image();
+
+        $(reader).bind('load', img, function (event) {
+            event.data.src = this.result;
+        });
+
+        //将图片转为base64
+        reader.readAsDataURL(file);
+
+      
+        //设置图片的加载事件
+        img.onload = function () {
+            var data = { method: 'ToImageView', data: { ImgBase64: this.src, Width: this.width, Height: this.height } };
+
+            //$('body').append(img.outerHTML);
+            window.external.notify(JSON.stringify(data));
+        }
+    }
+}
