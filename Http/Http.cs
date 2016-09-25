@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
@@ -35,6 +36,7 @@ namespace Uwp.Http
 
             Client = new HttpClient(Handler);
             Client.BaseAddress = new Uri("http://example.com");
+            Client.Timeout = TimeSpan.FromSeconds(30);
         }
 
         public HttpRequestMessage GetRequest(string url)
@@ -50,6 +52,12 @@ namespace Uwp.Http
             result.EnsureSuccessStatusCode();
             return WebUtility.HtmlDecode(await result.Content.ReadAsStringAsync());
         }
+        public async Task<string> GetStringAsync(string url, CancellationToken cancellationToken)
+        {
+            var result = await Client.SendAsync(GetRequest(url), cancellationToken);
+            result.EnsureSuccessStatusCode();
+            return WebUtility.HtmlDecode(await result.Content.ReadAsStringAsync());
+        }
 
         public async Task<Stream> GetStreamAsync(string url)
         {
@@ -57,10 +65,22 @@ namespace Uwp.Http
             result.EnsureSuccessStatusCode();
             return await result.Content.ReadAsStreamAsync();
         }
+        public async Task<Stream> GetStreamAsync(string url, CancellationToken cancellationToken)
+        {
+            var result = await Client.SendAsync(GetRequest(url), cancellationToken);
+            result.EnsureSuccessStatusCode();
+            return await result.Content.ReadAsStreamAsync();
+        }
 
         public async Task<byte[]> GetBtyeAsync(string url)
         {
             var result = await Client.SendAsync(GetRequest(url));
+            result.EnsureSuccessStatusCode();
+            return await result.Content.ReadAsByteArrayAsync();
+        }
+        public async Task<byte[]> GetBtyeAsync(string url, CancellationToken cancellationToken)
+        {
+            var result = await Client.SendAsync(GetRequest(url), cancellationToken);
             result.EnsureSuccessStatusCode();
             return await result.Content.ReadAsByteArrayAsync();
         }
@@ -81,12 +101,37 @@ namespace Uwp.Http
                 return null;
             }
         }
+        public async Task<SoftwareBitmap> DownloadImage(string url, CancellationToken cancellationToken)
+        {
+            try
+            {
+                IInputStream inputStream = (await GetStreamAsync(url, cancellationToken)).AsInputStream();
+                IRandomAccessStream memStream = new InMemoryRandomAccessStream();
+                await RandomAccessStream.CopyAsync(inputStream, memStream);
+                BitmapDecoder decoder = await BitmapDecoder.CreateAsync(memStream);
+                SoftwareBitmap softBmp = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                return softBmp;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
 
         public async Task<HttpResponseMessage> GetResponseAsync(string url, Dictionary<string, string> postData)
         {
             var data = new FormUrlEncodedContent(postData);
             data.Headers.Add("Cookie", Cookie);
             var response = await Client.PostAsync(url, data);
+            response.EnsureSuccessStatusCode();
+            return response;
+        }
+        public async Task<HttpResponseMessage> GetResponseAsync(string url, Dictionary<string, string> postData, CancellationToken cancellationToken)
+        {
+            var data = new FormUrlEncodedContent(postData);
+            data.Headers.Add("Cookie", Cookie);
+            var response = await Client.PostAsync(url, data, cancellationToken);
             response.EnsureSuccessStatusCode();
             return response;
         }
@@ -103,12 +148,36 @@ namespace Uwp.Http
                 throw ex;
             }
         }
+        public async Task<string> PostStringAsync(string url, Dictionary<string, string> postData, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var response = GetResponseAsync(url, postData, cancellationToken);
+                return WebUtility.HtmlDecode(await (await response).Content.ReadAsStringAsync());
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
         public async Task<Stream> PostStreamAsync(string url, Dictionary<string, string> postData)
         {
             try
             {
                 var response = GetResponseAsync(url, postData);
+                return await (await response).Content.ReadAsStreamAsync();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<Stream> PostStreamAsync(string url, Dictionary<string, string> postData, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var response = GetResponseAsync(url, postData, cancellationToken);
                 return await (await response).Content.ReadAsStreamAsync();
             }
             catch (Exception ex)

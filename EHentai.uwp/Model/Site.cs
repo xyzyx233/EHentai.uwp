@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EHentai.uwp.Common;
 using System.Net;
+using System.Threading;
 using Windows.Graphics.Imaging;
 using Uwp.Http;
 
@@ -124,7 +125,7 @@ namespace EHentai.uwp.Model
             }
         }
 
-        public async Task<SoftwareBitmap> DownloadImage(string url)
+        public async Task<SoftwareBitmap> DownloadImage(string url, CancellationToken cancellationToken)
         {
             try
             {
@@ -132,7 +133,7 @@ namespace EHentai.uwp.Model
                 {
                     Login();
                 }
-                var stream = await Http.DownloadImage(url);
+                var stream = await Http.DownloadImage(url, cancellationToken);
                 return stream;
                 //return Http.GetMemoryStream(stream);
             }

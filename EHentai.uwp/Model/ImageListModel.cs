@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Threading;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
-using EHentai.uwp.Common;
+using Newtonsoft.Json;
 using Uwp.Common;
 
 namespace EHentai.uwp.Model
@@ -26,7 +27,6 @@ namespace EHentai.uwp.Model
             set { _imageUrl = value; GetImageUrl?.Invoke(this, EventArgs.Empty); }
         }
         public string Herf { get; set; }//链接
-        public string Src { get; set; }//图片Base64值
         public EnumLoadState ImageLoadState { get; set; }
 
         private double? _height;//高度
@@ -40,6 +40,7 @@ namespace EHentai.uwp.Model
         }
 
         private BitmapImage _image;//图片
+        [JsonIgnore]
         public BitmapImage Image
         {
             get { return _image; }
@@ -49,16 +50,10 @@ namespace EHentai.uwp.Model
             }
         }
 
-        private string _cacheName;//图片本地缓存名称
-        public string CacheName
-        {
-            get { return _cacheName; }
-            set
-            {
-                _cacheName = value;
-                //SetProperty(ref _cacheName, value);
-            }
-        }
+        [JsonIgnore]
+        public CancellationTokenSource IsCance { get; } = new CancellationTokenSource();
+
+        public string CacheName { get; set; }
 
         private Visibility _visibility;//是否显示
         public Visibility Visibility

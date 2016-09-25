@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -41,169 +42,96 @@ namespace EHentai.uwp
             InitializeComponent();
             LoadSize = 1000;
             this.InitializeComponent();
+
+            Unloaded += ListPage_Unloaded;
         }
 
-        public override string GetNowPageUrl()
+        public override async void LoadDataByPage()
         {
-            return NowUrl;
-        }
+            var document = await GetHtmlDocument(NowUrl);
 
-        public override void LoadDataByPage()
-        {
-            CreateTask(async () =>
-            {
-                try
-                {
-                    if (IsFirst)
-                    {
-                        var document = GetHtmlNode();
-
-                        PageMax =
-                            ImageCount =
+            //获取最大页数和图片总数
+            PageMax = ImageCount =
                                 int.Parse(
-                                    document.SelectSingleNode("//*[@id=\"next\"]")
-                                        .PreviousSibling.SelectNodes("span")
+                                    document.QuerySelector("#next")
+                                        .PreviousElementSibling.QuerySelectorAll("span")
                                         .Last()
                                         .InnerHtml);
-                        nowShowIndex = NowPageIndex = int.Parse(NowUrl.Split('-')[1]); //获取当前页数
+            //获取当前页数
+            nowShowIndex = NowPageIndex = int.Parse(NowUrl.Split('-')[1]);
 
-                        await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                        {
-                            for (int i = 1; i <= ImageCount; i++)
-                            {
-                                int id = i;
-                                var order = EnumOrder.Next;
-                                if (id < NowPageIndex)
-                                {
-                                    order = EnumOrder.Prev;
-                                }
-                                else if (id == NowPageIndex)
-                                {
-                                    order = EnumOrder.Center;
-                                }
+            //初始化所有实体数据
+            InitializeData();
 
-                                var model = new ImageListModel
-                                {
-                                    Id = id,
-                                    Index = i.ToString(),
-                                    Order = order,
-                                };
-                                model.Loaded += ModelLoaded;
-                                ImageList.Add(model);
-                            }
-                        });
+            var nowModel = ImageList[NowPageIndex - 1];//获取当前页的实体
+            nowModel.Herf = NowUrl;
+            nowModel.ImageUrl = document.QuerySelector("#i3 img").Attributes["src"].Value;//当前页的图片地址
+            nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." + nowModel.ImageUrl.Split('.').Last();
+            GetImageAsync(nowModel);//加载当前页的图片
 
+            //获取下一页的地址
+            string next = document.QuerySelector("#next").Attributes["href"].Value;
+            ImageList[PreNextPageIndex - 1].Herf = next;
+            //获取上一页的地址
+            string prev = document.QuerySelector("#prev").Attributes["href"].Value;
+            ImageList[PrePrevPageIndex - 1].Herf = prev;
 
+            int nextNotLoadCount = PreNextPageIndex - NowPageIndex;//当前页之前后的图片数量
+            int prevNotLoadCount = NowPageIndex - PrePrevPageIndex;//当前页之前的图片数量
 
-
-                        //PrePrevPageIndex = NowPageIndex - 1;
-                        //PreNextPageIndex = NowPageIndex + 1;
-
-                        IsLoadPrePage = IsLoadNextPage = IsFirst = false;
-
-
-                        var nowModel = ImageList[NowPageIndex - 1];
-                        var elment = document.SelectSingleNode("//*[@id=\"i3\"]/a");
-                        //nowModel.Herf = elment.Attribute("href").Value();
-                        nowModel.Herf = NowUrl;
-                        nowModel.ImageUrl = elment.SelectSingleNode("img").Attributes["src"].Value;
-                        nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." +
-                                             nowModel.ImageUrl.Split('.').Last();
-                        GetImageAsync(nowModel);
-
-                        string next = document.SelectSingleNode("//*[@id=\"next\"]").Attributes["href"].Value;
-                        string prev = document.SelectSingleNode("//*[@id=\"prev\"]").Attributes["href"].Value;
-
-                        ImageList[PrePrevPageIndex - 1].Herf = prev;
-                        ImageList[PreNextPageIndex - 1].Herf = next;
-
-
-                        int nextNotLoadCount = PreNextPageIndex - NowPageIndex;
-                        int prevNotLoadCount = NowPageIndex - PrePrevPageIndex;
-                        //如果是第一页则只加载后面的
-                        if (NowPageIndex == 1)
-                        {
-                            CreateTask(() =>
-                            {
-                                for (int i = 0; i <= PrestrainSize - nextNotLoadCount; i++)
-                                {
-                                    LoadNext();
-                                }
-                            });
-                        }
-                        //如果是最后一页则只加载前面的
-                        else if (NowPageIndex == PageMax)
-                        {
-                            CreateTask(() =>
-                            {
-                                for (int i = 0; i <= PrestrainSize - prevNotLoadCount; i++)
-                                {
-                                    LoadPrev();
-                                }
-                            });
-                        }
-                        else
-                        {
-                            CreateTask(() =>
-                            {
-                                for (int i = 0; i <= PrestrainSize - nextNotLoadCount; i++)
-                                {
-                                    LoadNext();
-                                }
-                            });
-
-                            CreateTask(() =>
-                            {
-                                for (int i = 0; i < PrestrainSize - prevNotLoadCount; i++)
-                                {
-                                    LoadPrev();
-                                }
-                            });
-                        }
-
-                        //ImageGrid.HideLoading();
-                    }
-                }
-                catch (Exception ex)
+            //如果是第一页则只加载后面的
+            if (NowPageIndex == 1)
+            {
+                for (int i = 0; i <= PrestrainSize - nextNotLoadCount; i++)
                 {
-                    //ImageGrid.HideLoading();
-                    ShowMessage(ex.Message);
+                    LoadNext();
                 }
-            });
+            }
+            //如果是最后一页则只加载前面的
+            else if (NowPageIndex == PageMax)
+            {
+                for (int i = 0; i <= PrestrainSize - prevNotLoadCount; i++)
+                {
+                    LoadPrev();
+                }
+            }
+            else
+            {
+                for (int i = 0; i <= PrestrainSize - nextNotLoadCount; i++)
+                {
+                    LoadNext();
+                }
+
+                for (int i = 0; i < PrestrainSize - prevNotLoadCount; i++)
+                {
+                    LoadPrev();
+                }
+            }
         }
 
-        private void ImageScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        private void InitializeData()
         {
-            ScrollViewer scroll = sender as ScrollViewer;
-            if (ImageScroll == scroll)
+            for (int i = 1; i <= ImageCount; i++)
             {
-                if (nowOffset < ImageScroll.VerticalOffset)
+                int id = i;
+                var order = EnumOrder.Next;
+                if (id < NowPageIndex)
                 {
-                    ShowNextLoadedImage();
+                    order = EnumOrder.Prev;
                 }
-                else
+                else if (id == NowPageIndex)
                 {
-                    ShowPrevLoadedImage();
+                    order = EnumOrder.Center;
                 }
-                nowOffset = ImageScroll.VerticalOffset;
-                nowShowIndex = GetIndex();
-                //int balance = (int)(ImageScroll.VerticalOffset % height);
-                //int balance = (int)nowShowImageOffset;
-                //if (balance < 50)
-                if (ImageScroll.VerticalOffset % 50 <= 10)
+
+                var model = new ImageListModel
                 {
-                    //int nowIndex = GetIndex();
-                    if (ImageList[PrePrevPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded &&
-                        nowShowIndex - PrePrevPageIndex < PrestrainSize)
-                    {
-                        CreateTask(LoadPrev);
-                    }
-                    if (ImageList[PreNextPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded &&
-                        PreNextPageIndex - nowShowIndex < PrestrainSize)
-                    {
-                        CreateTask(LoadNext);
-                    }
-                }
+                    Id = id,
+                    Index = i.ToString(),
+                    Order = order,
+                };
+                model.Loaded += ModelLoaded;
+                ImageList.Add(model);
             }
         }
 
@@ -213,27 +141,8 @@ namespace EHentai.uwp
         /// <returns></returns>
         private int GetIndex()
         {
-            double dVer = ImageScroll.VerticalOffset;
-
-            var loadeds = ImageList.Where(x => x.ImageLoadState == EnumLoadState.Loaded && x.Height != null).ToList();
-
-            if (loadeds.Any())
-            {
-                double height = 0;
-                for (int i = 0; i < loadeds.Count; i++)
-                {
-                    if (dVer >= height && dVer < height + loadeds[i].Height.Value)
-                    {
-                        nowShowImageOffset = dVer - height;
-                        nowShowImageOffsetScale = nowShowImageOffset / loadeds[i].Height.Value;
-                        nowShowIndex = loadeds[i].Id;
-                        return nowShowIndex;
-                    }
-                    height += loadeds[i].Height.Value;
-                }
-            }
-
-            return 0;
+            return nowShowIndex = (int)ImageScroll.VerticalOffset - 1;
+ 
         }
 
         /// <summary>
@@ -275,85 +184,102 @@ namespace EHentai.uwp
         /// </summary>
         private void ShowNextLoadedImage()
         {
-            var list =
-                ImageList.Where(x => x.Id >= nowShowIndex && x.Id <= PreNextPageIndex).OrderBy(x => x.Id).ToList();
+            var list = ImageList.Where(x => x.Id >= nowShowIndex && x.Id <= PreNextPageIndex).OrderBy(x => x.Id).ToList();
             ShowLoadedImage(list);
         }
 
-        private void LoadPrev()
+        private async void LoadPrev()
         {
             try
             {
-                lock (this)
+                ImageListModel nowModel = ImageList[PrePrevPageIndex - 1];
+
+                if (nowModel.ImageLoadState == EnumLoadState.NotLoaded && !string.IsNullOrEmpty(nowModel.Herf))
                 {
-                    ImageListModel nowModel = ImageList[PrePrevPageIndex - 1];
+                    nowModel.ImageLoadState = EnumLoadState.Loading;
+                    var document = await GetHtmlDocument(nowModel.Herf);
+                    var elment = document.QuerySelector("#i3 a");
 
-                    if (nowModel.ImageLoadState == EnumLoadState.NotLoaded)
-                    {
-                        nowModel.ImageLoadState = EnumLoadState.Loading;
-                        string html = Http.GetStringAsync(nowModel.Herf).Result;
-                        if (!string.IsNullOrEmpty(html))
-                        {
-                            var document = GetHtmlDocument(html).DocumentNode;
-                            var elment = document.SelectSingleNode("//*[@id=\"i3\"]/a");
+                    nowModel.ImageUrl = elment.QuerySelector("img").Attributes["src"].Value;
+                    nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." +
+                                         nowModel.ImageUrl.Split('.').Last();
+                    GetImageAsync(nowModel);
 
-                            nowModel.ImageUrl = elment.SelectSingleNode("img").Attributes["src"].Value;
-                            nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." +
-                                                 nowModel.ImageUrl.Split('.').Last();
-                            GetImageAsync(nowModel);
-
-                            ImageListModel preModel = ImageList[PrePrevPageIndex - 1];
-                            preModel.Herf =
-                                document.SelectSingleNode($"//*[@id=\"{nowModel.Order.ToString().ToLower()}\"]")
-                                    .Attributes["href"].Value;
-                        }
-                    }
+                    ImageListModel preModel = ImageList[PrePrevPageIndex - 1];
+                    preModel.Herf =
+                        document.QuerySelector($"#{nowModel.Order.ToString().ToLower()}")
+                            .Attributes["href"].Value;
                 }
             }
             catch (Exception ex)
-            {
-            }
+            { }
         }
 
-        private void LoadNext()
+        private async void LoadNext()
         {
             try
             {
-                lock (_imageListLock)
+                ImageListModel nowModel = ImageList[PreNextPageIndex - 1];
+
+                if (nowModel.ImageLoadState == EnumLoadState.NotLoaded && !string.IsNullOrEmpty(nowModel.Herf))
                 {
-                    ImageListModel nowModel = ImageList[PreNextPageIndex - 1];
+                    nowModel.ImageLoadState = EnumLoadState.Loading;
+                    var document = await GetHtmlDocument(nowModel.Herf);
+                    var elment = document.QuerySelector("#i3 a");
 
-                    if (nowModel.ImageLoadState == EnumLoadState.NotLoaded)
-                    {
-                        nowModel.ImageLoadState = EnumLoadState.Loading;
-                        string html = Http.GetStringAsync(nowModel.Herf).Result;
-                        if (!string.IsNullOrEmpty(html))
-                        {
-                            var document = GetHtmlDocument(html).DocumentNode;
-                            var elment = document.SelectSingleNode("//*[@id=\"i3\"]/a");
+                    nowModel.ImageUrl = elment.QuerySelector("img").Attributes["src"].Value;
+                    nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." +
+                                         nowModel.ImageUrl.Split('.').Last();
+                    GetImageAsync(nowModel);
 
-                            nowModel.ImageUrl = elment.SelectSingleNode("img").Attributes["src"].Value;
-                            nowModel.CacheName = nowModel.Herf.GetValidFileName() + "_Original." +
-                                                 nowModel.ImageUrl.Split('.').Last();
-                            GetImageAsync(nowModel);
-
-                            ImageListModel preModel = ImageList[PreNextPageIndex - 1];
-                            preModel.Herf =
-                                document.SelectSingleNode($"//*[@id=\"{nowModel.Order.ToString().ToLower()}\"]")
-                                    .Attributes["href"].Value;
-                        }
-                    }
+                    ImageListModel preModel = ImageList[PreNextPageIndex - 1];
+                    preModel.Herf =
+                        document.QuerySelector($"#{nowModel.Order.ToString().ToLower()}")
+                            .Attributes["href"].Value;
                 }
             }
             catch (Exception ex)
-            {
-            }
+            { }
         }
 
-        private double GetNowShowImageHeight()
+        private bool IsContinueLoad()
         {
-            double countHeight = ImageList.Where(x => x.Id < nowShowIndex && x.Height != null).Sum(x => x.Height.Value);
-            return countHeight;
+            //return ImageScroll.VerticalOffset % 50 <= 10;//普通容器时的判断逻辑(每滚动50高度加载数据)
+            return ImageScroll.VerticalOffset % 1 <= 0.2;//虚拟化容器时的判断逻辑(每滚动0.1高度加载数据)
+        }
+
+        private void ImageScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        {
+            ScrollViewer scroll = sender as ScrollViewer;
+            if (ImageScroll == scroll)
+            {
+                if (nowOffset < ImageScroll.VerticalOffset)
+                {
+                    ShowNextLoadedImage();
+                }
+                else
+                {
+                    ShowPrevLoadedImage();
+                }
+                nowOffset = ImageScroll.VerticalOffset;
+                nowShowIndex = GetIndex();
+
+
+                if (IsContinueLoad())
+                {
+                    //int nowIndex = GetIndex();
+                    if (ImageList[PrePrevPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded &&
+                        nowShowIndex - PrePrevPageIndex < PrestrainSize)
+                    {
+                        LoadPrev();
+                    }
+                    if (ImageList[PreNextPageIndex - 1].ImageLoadState == EnumLoadState.NotLoaded &&
+                        PreNextPageIndex - nowShowIndex < PrestrainSize)
+                    {
+                        LoadNext();
+                    }
+                }
+            }
         }
 
         private void FrameworkElement_OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -375,17 +301,18 @@ namespace EHentai.uwp
                     if (!(model.Height > 0))
                     {
                         model.Height = img.ActualHeight;
-                        //if (height == 0)
-                        //{
-                        //    height = img.ActualHeight;
-                        //}
-                        if (model.Order == EnumOrder.Prev)
-                        {
-                            ImageScroll.ScrollToVerticalOffset(GetNowShowImageHeight() +
-                                                               nowShowImageOffsetScale * img.ActualHeight);
 
-                            //ImageScroll.ScrollToVerticalOffset(ImageScroll.VerticalOffset + img.ActualHeight);
+                        //使用虚拟化容器时采用以下方法设置滚动位置
+                        if (model.Order == EnumOrder.Prev && ImageList[model.Id].Order == EnumOrder.Center)
+                        {
+                            ImageScroll.ScrollToVerticalOffset(model.Id + 2);//当使用虚拟化容器时,第一次初始化高度为3
                         }
+
+                        ////使用普通容器时采用以下方法初设置滚动位置
+                        //if (model.Order == EnumOrder.Prev)
+                        //{
+                        //    ImageScroll.ScrollToVerticalOffset(ImageScroll.VerticalOffset + img.ActualHeight);
+                        //}
                     }
                 }
 
@@ -441,6 +368,17 @@ namespace EHentai.uwp
             }
             catch (Exception ex)
             { }
+        }
+
+        private void ListPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (ImageList != null && ImageList.Any())
+            {
+                foreach (var model in ImageList.Where(x => x.IsCance != null))
+                {
+                    model.IsCance.Cancel();
+                }
+            }
         }
     }
 }

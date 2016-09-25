@@ -51,7 +51,8 @@
                         });
                     });
                     element.bind('error', function () {
-                        scope.$apply(attrs.imageonload);
+                        //scope.$apply(attrs.imageonload);
+                        attrs.$$element[0].src = errorImage;
                     });
                 }
             };
@@ -76,9 +77,13 @@
                     cacheImage($event.target, model);
                 }
             };
-            $scope.ToDetailPage = function (model) {
-                var data = { method: 'ToDetailPage', data: model };
-                window.external.notify(JSON.stringify(data));
+            $scope.ToDetailPage = function ($event, model) {
+                if ($event.target.src == errorImage) {
+                    $event.target.src = model.ImageUrl;
+                } else {
+                    var data = { method: 'ToDetailPage', data: model };
+                    window.external.notify(JSON.stringify(data));
+                }
             };
             $scope.toggleSidenav = function (menuId) {
                 $mdSidenav(menuId).toggle();
@@ -100,7 +105,7 @@
         }
 
         function ini() {
-            for (var i = 0; i < 20; i++) {
+            for (var i = 0; i < 10; i++) {
                 var data = new ImageListModel();
                 data.Visibility = true;
                 data.Title = "pivi" + i;
@@ -173,7 +178,7 @@
                                 <span style="font-size: 12px; text-align: center; width: 100%;">{{ele.Title}}<md-tooltip>{{ele.Title}}</md-tooltip></span>
                             </md-card-title>
                             <md-card-content style="padding: 0; height: 300px;">
-                                <img ng-src="{{ele.ImageUrl}}" style="width: 100%; max-height: 300px;" ng-show="{{ele.Visibility}}" ng-click="ToDetailPage(ele)" imageonload="cacheImage($event ,ele);">
+                                <img ng-src="{{ele.ImageUrl}}" style="width: 100%; max-height: 300px;" ng-show="{{ele.Visibility}}" ng-click="ToDetailPage($event ,ele)" imageonload="cacheImage($event ,ele);">
                             </md-card-content>
                         </md-card>
                     </div>

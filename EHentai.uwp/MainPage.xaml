@@ -9,7 +9,7 @@
 
     <Grid x:Name="MainGrid">
         <Button x:Name="hideButton" Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}" Opacity="0">LIGHT</Button>
-        <Pivot x:Name="MainPivot" SelectedIndex="{Binding SelectedIndex,Mode=TwoWay}" ItemsSource="{Binding Contents}" >
+        <Pivot x:Name="MainPivot" SelectedIndex="{Binding SelectedIndex,Mode=TwoWay}" ItemsSource="{Binding Contents}" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
             <Pivot.HeaderTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Header}" FontSize="15" VerticalAlignment="Center"/>

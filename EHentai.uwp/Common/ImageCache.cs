@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml.Media.Imaging;
 using Uwp.Common;
@@ -15,6 +16,46 @@ namespace EHentai.uwp.Common
     public class ImageCache
     {
         public static readonly string CachePath = @"ImageCache"; //图片缓存目录
+        public static StorageFolder CacheFolder
+        {
+            get
+            {
+                var folder = FileHelper.LoaclFolder.TryGetItemAsync(CachePath).AsTask().ConfigureAwait(false).GetAwaiter().GetResult() as StorageFolder;
+                if (folder == null)
+                {
+                    folder = FileHelper.CreateFolder(CachePath).Result;
+                }
+                return folder;
+            }
+        }
+
+        /// <summary>
+        /// 清除图片缓存
+        /// </summary>
+        /// <param name="time"></param>
+        public static void Clear(TimeSpan? time = null)
+        {
+            Task.Run(() =>
+            {
+                DirectoryInfo TheFolder = new DirectoryInfo(CacheFolder.Path);
+                //遍历文件
+                foreach (FileInfo fileInfo in TheFolder.GetFiles())
+                {
+                    if (time != null && DateTime.Now - fileInfo.CreationTime > time)
+                        if (fileInfo.FullName != null)
+                        {
+                            fileInfo.Delete();
+                        }
+                    //file.Delete();
+                    //file.Name;//文件名
+                    //file.Length.ToString();//大小",
+                    //file.LastAccessTime.ToString();//最后访问时间
+                    //file.LastWriteTime.ToString();//最后修改时间
+                    //file.DirectoryName;//路径
+                }
+            });
+        }
+
 
         public static BitmapImage ErrorImage
         {

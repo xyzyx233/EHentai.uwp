@@ -21,7 +21,8 @@
                 </ItemsControl.ItemTemplate>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0"/>
+                        <VirtualizingStackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0"/>
+                        <!--<StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0"/>-->
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ListBox>

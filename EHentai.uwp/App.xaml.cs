@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -14,6 +15,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using EHentai.uwp.Common;
 
 namespace EHentai.uwp
 {
@@ -30,6 +32,8 @@ namespace EHentai.uwp
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+
+            ImageCache.Clear(TimeSpan.FromDays(3));
         }
 
         /// <summary>

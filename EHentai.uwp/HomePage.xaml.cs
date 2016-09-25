@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using AngleSharp.Dom.Html;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using Uwp.Common.Extend;
@@ -19,7 +20,6 @@ namespace EHentai.uwp
     /// </summary>
     public sealed partial class HomePage : ImagePage
     {
-        private CancellationTokenSource cancel;
         private FilterModel filter = new FilterModel();
 
 
@@ -69,8 +69,6 @@ namespace EHentai.uwp
 
         public override async void LoadDataByPage()
         {
-            cancel?.Cancel();
-            cancel = new CancellationTokenSource();
             UrlParam = filter.ParamToString();
 
             try
@@ -88,28 +86,35 @@ namespace EHentai.uwp
 
         private async void ShowData(ObservableCollection<ImageListModel> datas)
         {
-            IsLoadNextPage = false;
-
-            if (datas.Any())
+            try
             {
-                if (NowPageIndex < PageMax)
+                IsLoadNextPage = false;
+
+                if (datas.Any())
                 {
-                    NowPageIndex++;
+                    if (NowPageIndex < PageMax)
+                    {
+                        NowPageIndex++;
+                    }
+
+                    //将当前页数据转为json格式的字符串
+                    string js = datas.ToJsonString();
+                    //将数据添加到前台页面
+                    await View.InvokeScriptAsync("AddImages", new[] { js });
                 }
 
-                //将当前页数据转为json格式的字符串
-                string js = datas.ToJsonString();
-                //将数据添加到前台页面
-                await View.InvokeScriptAsync("AddImages", new[] { js });
+                if (IsFirst)
+                {
+                    IsFirst = false;
+                    IsLoadNextPage = true;
+
+                    datas = await GetNowPageData();
+                    ShowData(datas);
+                }
             }
-
-            if (IsFirst)
+            catch (Exception ex)
             {
-                IsFirst = false;
-                IsLoadNextPage = true;
-
-                datas = await GetNowPageData();
-                ShowData(datas);
+                ShowMessage(ex.Message);
             }
         }
 
@@ -119,37 +124,36 @@ namespace EHentai.uwp
         /// <returns></returns>
         private async Task<ObservableCollection<ImageListModel>> GetNowPageData()
         {
-
             return await Task.Run(() =>
             {
                 ObservableCollection<ImageListModel> datas = new ObservableCollection<ImageListModel>();
                 try
                 {
-                    HtmlNode document; //当前页html对象
+                    IHtmlDocument document; //当前页html对象
 
                     if (IsFirst)
                     {
                         //获取html对象
-                        document = GetHtmlNode();
+                        document = GetHtmlDocument().Result;
 
                         //总记录数量
-                        var countStr = document.SelectSingleNode("//*[@class=\"ip\"]").InnerHtml.Split(' ');
+                        var countStr = document.QuerySelector(".ip").InnerHtml.Split(' ');
                         ImageCount = int.Parse(countStr[countStr.Length - 1].Replace(",", ""));
 
                         //总页数
-                        string pageMax = document.SelectNodes("//*[@class=\"ptt\"]/tr/td").Last().PreviousSibling.FirstChild.InnerHtml;
+                        string pageMax = document.QuerySelectorAll(".ptt tr td").Last().PreviousElementSibling.FirstElementChild.InnerHtml;
                         PageMax = pageMax.ToInt() - 1;
 
                     }
                     else
                     {
                         if (!IsLoaded)
-                            document = GetHtmlNode();
+                            document = GetHtmlDocument().Result;
                         else
                             return datas;
                     }
 
-                    var divs = document.SelectNodes("//*[@class=\"id3\"]");
+                    var divs = document.QuerySelectorAll(".id3");
 
                     if (divs!=null&& divs.Any())
                     {
@@ -158,9 +162,9 @@ namespace EHentai.uwp
                             ImageListModel model = new ImageListModel();
 
                             //model.GetImageUrl += ModelGetImageUrl;
-                            var a = div.FirstChild;
+                            var a = div.FirstElementChild;
 
-                            var img = a.FirstChild;
+                            var img = a.FirstElementChild;
                             model.Title = img.Attributes["title"].Value;
                             model.Herf = a.Attributes["href"].Value;
                             model.CacheName = model.Herf.GetValidFileName() + ".jpg";
@@ -179,13 +183,7 @@ namespace EHentai.uwp
             });
 
         }
-
-        private void ModelGetImageUrl(object sender, EventArgs e)
-        {
-            var model = sender as ImageListModel;
-            GetImageBase64Async(model);
-        }
-
+        
 
         private async void Search(string filer)
         {

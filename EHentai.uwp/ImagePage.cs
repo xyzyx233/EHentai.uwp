@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media.Imaging;
 using AngleSharp;
+using AngleSharp.Dom.Html;
 using AngleSharp.Parser.Html;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
@@ -140,26 +141,14 @@ namespace EHentai.uwp
             return NowUrl + "/?" + PageName + "=" + pageIndex + "&" + UrlParam;
         }
 
-        public HtmlDocument GetHtmlDocument(string html)
+        public async Task<IHtmlDocument> GetHtmlDocument(string url = null)
         {
-            //var document = new HtmlParser().Parse(html);
-            //document.QuerySelector()
-            HtmlDocument document = new HtmlDocument();
-            document.LoadHtml(html);
+            string html = await Site.GetStringAsync(string.IsNullOrEmpty(url) ? GetNowPageUrl() : url);
+            var document = new HtmlParser().Parse(html);
             return document;
         }
 
-        /// <summary>
-        /// 获取当前url下的html对象
-        /// </summary>
-        /// <returns></returns>
-        public HtmlNode GetHtmlNode(string url = null)
-        {
-            string html = Site.GetStringAsync(string.IsNullOrEmpty(url) ? GetNowPageUrl() : url).Result;
-            return GetHtmlDocument(html).DocumentNode;
-        }
-
-        public async void GetImage(ImageListModel item, CancellationTokenSource isCancel = null)
+        public async void GetImageAsync(ImageListModel item)
         {
             try
             {
@@ -168,97 +157,52 @@ namespace EHentai.uwp
                 {
                     if (!await ImageCache.HasCache(item.CacheName))
                     {
-                        var imgStream = await Site.DownloadImage(item.ImageUrl);
+                        var imgStream = await Site.DownloadImage(item.ImageUrl, item.IsCance.Token);
                         if (imgStream != null)
                         {
                             await ImageCache.CreateCache(item.CacheName, imgStream);
                         }
                     }
 
+                    BitmapImage img = await ImageCache.HasCache(item.CacheName) ? await ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
 
-                    item.Src = ImageCache.GetImageBase64(item.CacheName);
-                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+                    if (img == null)
                     {
-                        try
-                        {
-                            BitmapImage img = await ImageCache.HasCache(item.CacheName) ? await ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
-
-                            if (img == null)
-                            {
-                                item.Image = ImageCache.ErrorImage;
-                            }
-
-                            item.Image = img;
-                            item.ImageLoadState = EnumLoadState.Loaded;
-                            item.OnLoaded();
-                        }
-                        catch (Exception ex)
-                        {
-                            throw ex;
-                        }
-                    });
-                }
-
-            }
-            catch (Exception ex)
-            { }
-        }
-
-        public async void GetImageBase64(ImageListModel item, CancellationTokenSource isCancel = null)
-        {
-            try
-            {
-                item.ImageLoadState = EnumLoadState.Loading;
-                if (!string.IsNullOrEmpty(item.CacheName))
-                {
-                    if (!await ImageCache.HasCache(item.CacheName))
-                    {
-                        var imgStream = await Site.DownloadImage(item.ImageUrl);
-                        if (imgStream != null)
-                        {
-                            await ImageCache.CreateCache(item.CacheName, imgStream);
-                        }
+                        item.Image = ImageCache.ErrorImage;
                     }
 
+                    item.Image = img;
+                    item.ImageLoadState = EnumLoadState.Loaded;
+                    item.OnLoaded();
 
-                    item.Src = ImageCache.GetImageBase64(item.CacheName);
-                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
-                    {
-                        try
-                        {
-                            item.ImageLoadState = EnumLoadState.Loaded;
-                            item.OnLoaded();
+                    //item.Src = ImageCache.GetImageBase64(item.CacheName);
+                    //await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+                    //{
+                    //    try
+                    //    {
+                    //        BitmapImage img = await ImageCache.HasCache(item.CacheName) ? await ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
 
-                            await View.InvokeScriptAsync("SetSrc", new[] { item.ToJsonString() });
-                        }
-                        catch (Exception ex)
-                        {
-                            throw ex;
-                        }
-                    });
+                    //        if (img == null)
+                    //        {
+                    //            item.Image = ImageCache.ErrorImage;
+                    //        }
+
+                    //        item.Image = img;
+                    //        item.ImageLoadState = EnumLoadState.Loaded;
+                    //        item.OnLoaded();
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        throw ex;
+                    //    }
+                    //});
                 }
 
             }
             catch (Exception ex)
             { }
         }
-
-        public void GetImageAsync(ImageListModel item, CancellationTokenSource isCancel = null)
-        {
-            CreateTask(() =>
-            {
-                GetImage(item, isCancel);
-            });
-        }
-
-        public void GetImageBase64Async(ImageListModel item, CancellationTokenSource isCancel = null)
-        {
-            CreateTask(() =>
-            {
-                GetImageBase64(item, isCancel);
-            });
-        }
-
+        
         /// <summary>
         /// 滚动翻页
         /// </summary>
@@ -324,6 +268,15 @@ namespace EHentai.uwp
             catch (Exception ex)
             {
                 ShowMessage(ex.Message);
+            }
+        }
+
+        protected async void ShowWebViewToast(string content)
+        {
+            if (View != null)
+            {
+                string js = $"scope.showToast(\"{content}\");";
+                var result = await View.InvokeScriptAsync("eval", new[] { js });
             }
         }
     }

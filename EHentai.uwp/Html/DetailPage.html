@@ -49,7 +49,7 @@
         });
 
         //初始参数
-        app.controller('myCtrl', function ($scope, $mdSidenav, $mdDialog) {
+        app.controller('myCtrl', function ($scope, $mdSidenav, $mdToast) {
             scope = $scope;
             $scope.theme = 'myTheme';
             $scope.primary = 'blue';
@@ -59,10 +59,14 @@
             $scope.torrentList = torrentList;
             $scope.isLoading = true;
             $scope.hasTorrentDown = false;//是否可以下载种子文件
-            $scope.ToListPage = function (model) {
-                model.Title = scope.enTitle;
-                var data = { method: 'ToListPage', data: model };
-                window.external.notify(JSON.stringify(data));
+            $scope.ToListPage = function ($event, model) {
+                if ($event.target.src == errorImage) {
+                    $event.target.src = model.ImageUrl;
+                } else {
+                    model.Title = scope.enTitle;
+                    var data = { method: 'ToListPage', data: model };
+                    window.external.notify(JSON.stringify(data));
+                }
             };
             $scope.DownTorrent = function (url) {
                 var data = { method: 'DownTorrent', data: url };
@@ -71,6 +75,16 @@
             $scope.toggleSidenav = function (menuId) {
                 $mdSidenav(menuId).toggle();
             };
+            //消息提示框
+            $scope.showToast = function (content, classType) {
+                $mdToast.show(
+                    $mdToast.simple()
+                    .position('bottom right')
+                    .textContent(content)
+                );
+            };
+
+
             var originatorEv;
             this.openMenu = function ($mdOpenMenu, ev) {
                 originatorEv = ev;
@@ -123,8 +137,8 @@
             }
         }
 
-       
-      
+
+
         //ini();
     </script>
 
@@ -192,8 +206,8 @@
                 <div id="divImageList" style="margin: 0 auto;">
                     <div class="ImageList" style="width: 220px;" ng-repeat="ele in ImageList">
                         <md-card ng-style="{'min-height': {{ele.Height}}+'px'}" style="position: relative;">
-                            <img ng-src="{{ele.ImageUrl}}" ng-show="{{ele.Visibility}}" ng-click="ToListPage(ele)" style="width: 100%; max-height: 400px">
-                            <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0; opacity: 0.3; background-color: black; color: white;" >{{ele.Index}}</span>
+                            <img ng-src="{{ele.ImageUrl}}" ng-show="{{ele.Visibility}}" ng-click="ToListPage($event,ele)" style="width: 100%; max-height: 400px">
+                            <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0; opacity: 0.3; background-color: black; color: white;">{{ele.Index}}</span>
                         </md-card>
                     </div>
                 </div>

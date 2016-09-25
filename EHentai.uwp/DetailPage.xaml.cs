@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using EHentai.uwp.Model;
-using System;
 using System.Collections.ObjectModel;
 using HtmlAgilityPack;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
+using AngleSharp.Dom.Html;
 using EHentai.uwp.Common;
 using Newtonsoft.Json.Linq;
 using Uwp.Common;
@@ -32,7 +32,7 @@ namespace EHentai.uwp
         public double ImageHeight = 250;
         string enTitle = ""; //英文标题
         string jpTitle = ""; //日文标题
-        private string torrentPageUrl = "";//种子下载页面
+        private string torrentPageUrl = ""; //种子下载页面
         private List<Torrent> Torrents;
 
 
@@ -60,7 +60,8 @@ namespace EHentai.uwp
                         GetDown();
                     }
                     catch (Exception ex)
-                    { }
+                    {
+                    }
                 }
 
                 ShowData(datas);
@@ -98,7 +99,8 @@ namespace EHentai.uwp
                 if (IsFirst)
                 {
                     //设置标题
-                    js = $"scope.enTitle='{enTitle.Replace("'", "\\'")}'; scope.jpTitle='{jpTitle.Replace("'", "\\'")}'; scope.$apply();";
+                    js =
+                        $"scope.enTitle='{enTitle.Replace("'", "\\'")}'; scope.jpTitle='{jpTitle.Replace("'", "\\'")}'; scope.$apply();";
                     await View.InvokeScriptAsync("eval", new[] { js });
 
                 }
@@ -137,21 +139,29 @@ namespace EHentai.uwp
                 ObservableCollection<ImageListModel> datas = new ObservableCollection<ImageListModel>();
                 try
                 {
-                    HtmlNode document; //当前页html对象
+                    IHtmlDocument document; //当前页html对象
 
                     if (IsFirst)
                     {
-                        document = GetHtmlNode();
+                        document = GetHtmlDocument().Result;
 
-                        ImageCount = int.Parse(document.SelectNodes("//*[@class=\"gdt1\"]").First(x => x.InnerHtml == "Length:").NextSibling.InnerHtml.Split(' ')[0]);
-                        ImageHeight = int.Parse(document.SelectSingleNode("//*[@class=\"gdtl\"]").Attributes["style"].Value.Split(':')[1].Replace("px", "")) - 20;
-                        //string coverUrl = document.SelectSingleNode("//[@id=\"gd1\"]").SelectSingleNode("//img").Attributes["src"].Value;
+                        ImageCount =
+                            int.Parse(
+                                document.QuerySelectorAll(".gdt1")
+                                    .First(x => x.InnerHtml == "Length:")
+                                    .NextElementSibling.InnerHtml.Split(' ')[0]);
+                        ImageHeight =int.Parse(document.QuerySelector(".gdtl").Attributes["style"].Value.Split(':')[1].Replace("px", "")) - 20;
+                        //string coverUrl = document.QuerySelector("#gd1").QuerySelector("img").Attributes["src"].Value;
 
-                        enTitle = document.SelectSingleNode("//*[@id=\"gn\"]").InnerHtml; //英文标题
-                        jpTitle = document.SelectSingleNode("//*[@id=\"gj\"]").InnerHtml; //日文标题
-
-                        var a = document.SelectNodes("//*[@id=\"gd5\"]/*[@class=\"g2\"]");
-                        var download = document.SelectNodes("//*[@id=\"gd5\"]/*[@class=\"g2\"]/a").FirstOrDefault(x => x.InnerHtml.Contains("Torrent Download") && !x.InnerHtml.Contains("Torrent Download ( 0 )"));
+                        enTitle = document.QuerySelector("#gn").InnerHtml; //英文标题
+                        jpTitle = document.QuerySelector("#gj").InnerHtml; //日文标题
+                        
+                        var download =
+                            document.QuerySelectorAll("#gd5 .g2 a")
+                                .FirstOrDefault(
+                                    x =>
+                                        x.InnerHtml.Contains("Torrent Download") &&
+                                        !x.InnerHtml.Contains("Torrent Download ( 0 )"));
                         if (download != null)
                         {
                             torrentPageUrl = download.Attributes["onclick"].Value.Split('\'')[1];
@@ -174,19 +184,20 @@ namespace EHentai.uwp
                     else
                     {
                         if (!IsLoaded)
-                            document = GetHtmlNode();
+                            document = GetHtmlDocument().Result;
                         else
                             return datas;
                     }
 
-                    var divs = document.SelectNodes("//*[@id=\"gdt\"]/*[@class=\"gdtl\"]");
+                    var divs = document.QuerySelectorAll("#gdt .gdtl");
                     foreach (var element in divs)
                     {
-                        var img = element.FirstChild.FirstChild;
+
+                        var img = element.FirstElementChild.FirstElementChild;
                         var model = new ImageListModel();
                         //model.GetImageUrl += ModelGetImageUrl; 
                         model.Index = img.Attributes["alt"].Value;
-                        model.Herf = element.FirstChild.Attributes["href"].Value;
+                        model.Herf = element.FirstElementChild.Attributes["href"].Value;
                         model.CacheName = model.Herf.GetValidFileName() + ".jpg";
                         model.ImageUrl = img.Attributes["src"].Value;
                         model.Height = ImageHeight;
@@ -213,23 +224,25 @@ namespace EHentai.uwp
                 try
                 {
 
-                    var doc = GetHtmlNode(torrentPageUrl);
+                    var doc = GetHtmlDocument(torrentPageUrl).Result;
 
-                    var items = doc.SelectNodes("//table");
+                    var items = doc.QuerySelectorAll("table");
 
                     if (items != null && items.Any())
                     {
-                        foreach (HtmlNode node in items)
+                        foreach (var node in items)
                         {
                             Torrent torrent = new Torrent();
-                            var spans = node.SelectNodes("tr/td/span");
-                            var a = node.SelectSingleNode("tr/td/a");
-                            torrent.Posted = spans.FirstOrDefault(x => x.InnerHtml == "Posted:").NextSibling.InnerText;
-                            torrent.Size = spans.FirstOrDefault(x => x.InnerHtml == "Size:").NextSibling.InnerText;
-                            torrent.Seeds = spans.FirstOrDefault(x => x.InnerHtml == "Seeds:").NextSibling.InnerText;
-                            torrent.Peers = spans.FirstOrDefault(x => x.InnerHtml == "Peers:").NextSibling.InnerText;
-                            torrent.Downloads = spans.FirstOrDefault(x => x.InnerHtml == "Downloads:").NextSibling.InnerText;
-                            torrent.Uploader = spans.FirstOrDefault(x => x.InnerHtml == "Uploader:").NextSibling.InnerText;
+                            var spans = node.QuerySelectorAll("span");
+                            var a = node.QuerySelector("a");
+                            torrent.Posted = spans.FirstOrDefault(x => x.InnerHtml == "Posted:").NextSibling.TextContent;
+                            torrent.Size = spans.FirstOrDefault(x => x.InnerHtml == "Size:").NextSibling.TextContent;
+                            torrent.Seeds = spans.FirstOrDefault(x => x.InnerHtml == "Seeds:").NextSibling.TextContent;
+                            torrent.Peers = spans.FirstOrDefault(x => x.InnerHtml == "Peers:").NextSibling.TextContent;
+                            torrent.Downloads =
+                                spans.FirstOrDefault(x => x.InnerHtml == "Downloads:").NextSibling.TextContent;
+                            torrent.Uploader =
+                                spans.FirstOrDefault(x => x.InnerHtml == "Uploader:").NextSibling.TextContent;
                             torrent.Name = a.InnerHtml;
                             torrent.DownUrl = a.Attributes["href"].Value;
                             torrents.Add(torrent);
@@ -263,8 +276,18 @@ namespace EHentai.uwp
                             break;
                         case "DownTorrent":
                             var torrent = Torrents.First(x => x.DownUrl == data);
-                            var file = await Http.GetBtyeAsync(data);
-                            AppSettings.DownPath = await FileHelper.DownFile(torrent.Name + ".torrent", file, AppSettings.DownPath);
+                            try
+                            {
+                                var file = await Http.GetBtyeAsync(data);
+                                AppSettings.DownPath = await FileHelper.DownFile(torrent.Name + ".torrent", file, AppSettings.DownPath);
+                                ShowWebViewToast(torrent.Name + "下载成功!");
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowWebViewToast(torrent.Name + "下载失败! 错误信息:" + ex.Message);
+                            }
+
+
                             break;
                     }
                 }

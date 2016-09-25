@@ -111,13 +111,14 @@ namespace EHentai.uwp
             {
                 var appView = ApplicationView.GetForCurrentView();
                 appView.SetPreferredMinSize(new Size(198, 48));
-                appView.TitleBar.BackgroundColor = appView.TitleBar.ButtonBackgroundColor = appView.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-                //appView.TitleBar.ButtonHoverBackgroundColor = Colors.Transparent;
                 var titleBar = CoreApplication.GetCurrentView().TitleBar;
                 if (!titleBar.ExtendViewIntoTitleBar)
                 {
                     titleBar.ExtendViewIntoTitleBar = true;//隐藏标题栏
                 }
+                appView.TitleBar.BackgroundColor = appView.TitleBar.ButtonBackgroundColor = appView.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+                //appView.TitleBar.ButtonHoverBackgroundColor = Colors.Transparent;
+            
 
                 this.InitializeComponent();
                 Loaded += ImageViewPage_OnLoaded;

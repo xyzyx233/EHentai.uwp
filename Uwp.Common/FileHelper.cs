@@ -33,7 +33,7 @@ namespace Uwp.Common
                 }
                 else
                 {
-                    folder = await LoaclFolder.TryGetItemAsync(path) as StorageFolder;
+                    folder = await LoaclFolder.TryGetItemAsync(path).AsTask().ConfigureAwait(false) as StorageFolder;
                 }
 
                 return folder;
@@ -49,12 +49,11 @@ namespace Uwp.Common
         /// </summary>
         /// <param name="path">路径</param>
         /// <returns></returns>
-        public static bool ExistsFolder(string path)
+        public static async Task<bool> ExistsFolder(string path)
         {
             try
             {
-                //var folder = GetFolder(path);
-                var folder = GetFolderAsync(path).Result;
+                var folder = await GetFolderAsync(path);
                 return folder != null;
             }
             catch (Exception ex)
@@ -67,14 +66,15 @@ namespace Uwp.Common
         /// 创建文件夹
         /// </summary>
         /// <param name="path">路径</param>
-        public static void CreateFolder(string path)
+        public static async Task<StorageFolder> CreateFolder(string path)
         {
             try
             {
-                if (!ExistsFolder(path))
+                if (!await ExistsFolder(path))
                 {
-                    var folder = LoaclFolder.CreateFolderAsync(path).GetResults();
+                    return await LoaclFolder.CreateFolderAsync(path).AsTask().ConfigureAwait(false);
                 }
+                return null;
             }
             catch (Exception ex)
             {
@@ -99,7 +99,7 @@ namespace Uwp.Common
                 {
                     path = path + "\\";
                 }
-                StorageFile file = await LoaclFolder.GetFileAsync(path + name).AsTask().ConfigureAwait(false);
+                StorageFile file = await LoaclFolder.TryGetItemAsync(path + name).AsTask().ConfigureAwait(false) as StorageFile;
                 return file;
             }
             catch (Exception ex)
@@ -136,7 +136,7 @@ namespace Uwp.Common
         {
             try
             {
-                if (!string.IsNullOrEmpty(path) && !ExistsFolder(path))
+                if (!string.IsNullOrEmpty(path) && !await ExistsFolder(path))
                 {
                     CreateFolder(path);
                 }
@@ -160,11 +160,27 @@ namespace Uwp.Common
             }
         }
 
+        public static async void DeleteFile(string name, StorageFolder folder)
+        {
+            try
+            {
+                if (folder != null)
+                {
+                    StorageFile file = await folder.TryGetItemAsync(name).AsTask().ConfigureAwait(false) as StorageFile;
+                    file?.DeleteAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         public static async Task<bool> CreateImage(SoftwareBitmap bitmap, string name, string path = "")
         {
             try
             {
-                if (!string.IsNullOrEmpty(path) && !ExistsFolder(path))
+                if (!string.IsNullOrEmpty(path) && !await ExistsFolder(path))
                 {
                     CreateFolder(path);
                 }

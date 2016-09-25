@@ -52,7 +52,7 @@ namespace EHentai.uwp
             //    Site.Login();
             //}
 
-
+             
         }
 
         private void User_OnLogined(object sender, EventArgs e)
