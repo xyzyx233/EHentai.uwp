@@ -29,24 +29,8 @@
 
     <script>
         var torrentList = new Array();
+        var tagList = new Array();
         imageWidth = 220;
-        app = angular.module('myApp', ['ngMaterial', 'ngAnimate']);
-
-        //设置图标
-        app.run(function ($templateCache) {
-            angular.forEach(assetMap, function (value, key) {
-                $templateCache.put(key, value);
-            });
-        });
-
-        //设置主题
-        app.config(function ($mdThemingProvider) {
-            $mdThemingProvider.theme('myTheme')
-                .primaryPalette('grey')
-                .accentPalette('blue')
-                .warnPalette('red');
-            $mdThemingProvider.alwaysWatchTheme(true);
-        });
 
         //初始参数
         app.controller('myCtrl', function ($scope, $mdSidenav, $mdToast) {
@@ -55,8 +39,10 @@
             $scope.primary = 'blue';
             $scope.enTitle = "";
             $scope.jpTitle = "";
+            $scope.coverUrl = "";
             $scope.ImageList = ImageList;
             $scope.torrentList = torrentList;
+            $scope.tagList = tagList;
             $scope.isLoading = true;
             $scope.hasTorrentDown = false;//是否可以下载种子文件
             $scope.ToListPage = function ($event, model) {
@@ -67,6 +53,10 @@
                     var data = { method: 'ToListPage', data: model };
                     window.external.notify(JSON.stringify(data));
                 }
+            };
+            $scope.ToHomePage = function (url) {
+                var data = { method: 'ToHomePage', data: url };
+                window.external.notify(JSON.stringify(data));
             };
             $scope.DownTorrent = function (url) {
                 var data = { method: 'DownTorrent', data: url };
@@ -137,8 +127,6 @@
             }
         }
 
-
-
         //ini();
     </script>
 
@@ -190,8 +178,22 @@
         <!--内容-->
         <div layout="row" flex class="change-my-css">
             <!--左侧菜单内容-->
-            <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('')">
-
+            <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('')" style="width: 400px;" md-colors="{background: '{{primary}}-500'}">
+                <div style="text-align: center;">
+                    <img class="animate-show" ng-src="{{coverUrl}}" style="min-height: 150px;" />
+                    <md-content md-colors="{background: '{{primary}}-500'}">
+                        <table style="width: 100%;" ng-repeat="tag in tagList">
+                            <tr>
+                                <td class="tc" style="width: 100px;">{{tag.TagName}}</td>
+                                <td  >
+                                    <md-chips ng-repeat="(name,value) in tag.TagValues">
+                                        <md-chip md-colors="{background: 'Pink-300'}" ng-click="ToHomePage(value);">{{name}}</md-chip>
+                                    </md-chips>
+                                </td>
+                            </tr>
+                        </table>
+                    </md-content>
+                </div>
             </md-sidenav>
 
             <!--图片内容-->
@@ -206,7 +208,7 @@
                 <div id="divImageList" style="margin: 0 auto;">
                     <div class="ImageList" style="width: 220px;" ng-repeat="ele in ImageList">
                         <md-card ng-style="{'min-height': {{ele.Height}}+'px'}" style="position: relative;">
-                            <img ng-src="{{ele.ImageUrl}}" ng-show="{{ele.Visibility}}" ng-click="ToListPage($event,ele)" style="width: 100%; max-height: 400px">
+                            <img ng-src="{{ele.ImageUrl}}" class="animate-show" ng-click="ToListPage($event,ele)" style="width: 100%; max-height: 400px">
                             <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0; opacity: 0.3; background-color: black; color: white;">{{ele.Index}}</span>
                         </md-card>
                     </div>

@@ -29,11 +29,13 @@ namespace EHentai.uwp
     /// </summary>
     public sealed partial class DetailPage : ImagePage
     {
-        public double ImageHeight = 250;
-        string enTitle = ""; //英文标题
-        string jpTitle = ""; //日文标题
-        private string torrentPageUrl = ""; //种子下载页面
-        private List<Torrent> Torrents;
+        private double _imageHeight = 250;
+        private string _enTitle = ""; //英文标题
+        private string _jpTitle = ""; //日文标题
+        private string _torrentPageUrl = ""; //种子下载页面
+        private string _coverUrl = "";//封面地址
+        private List<Torrent> _torrents;//种子下载
+        private List<TagModel> _tagList = new List<TagModel>();//标签
 
 
         public DetailPage(string url) : base(url, "p")
@@ -53,7 +55,7 @@ namespace EHentai.uwp
                 //获取当前页的数据
                 var datas = await GetNowPageData();
 
-                if (IsFirst && !string.IsNullOrEmpty(torrentPageUrl))
+                if (IsFirst && !string.IsNullOrEmpty(_torrentPageUrl))
                 {
                     try
                     {
@@ -77,11 +79,11 @@ namespace EHentai.uwp
         {
             try
             {
-                Torrents = await GetTorrent();
+                _torrents = await GetTorrent();
 
-                if (Torrents.Any())
+                if (_torrents.Any())
                 {
-                    string js = Torrents.ToJsonString();
+                    string js = _torrents.ToJsonString();
                     await View.InvokeScriptAsync("addTorrent", new[] { js });
                 }
             }
@@ -99,8 +101,7 @@ namespace EHentai.uwp
                 if (IsFirst)
                 {
                     //设置标题
-                    js =
-                        $"scope.enTitle='{enTitle.Replace("'", "\\'")}'; scope.jpTitle='{jpTitle.Replace("'", "\\'")}'; scope.$apply();";
+                    js = $"scope.enTitle='{_enTitle.Replace("'", "\\'")}'; scope.jpTitle='{_jpTitle.Replace("'", "\\'")}'; scope.coverUrl='{_coverUrl}'; scope.tagList ={_tagList.ToJsonString()}; scope.$apply();";
                     await View.InvokeScriptAsync("eval", new[] { js });
 
                 }
@@ -150,12 +151,12 @@ namespace EHentai.uwp
                                 document.QuerySelectorAll(".gdt1")
                                     .First(x => x.InnerHtml == "Length:")
                                     .NextElementSibling.InnerHtml.Split(' ')[0]);
-                        ImageHeight =int.Parse(document.QuerySelector(".gdtl").Attributes["style"].Value.Split(':')[1].Replace("px", "")) - 20;
-                        //string coverUrl = document.QuerySelector("#gd1").QuerySelector("img").Attributes["src"].Value;
+                        _imageHeight = int.Parse(document.QuerySelector(".gdtl").Attributes["style"].Value.Split(':')[1].Replace("px", "")) - 20;
 
-                        enTitle = document.QuerySelector("#gn").InnerHtml; //英文标题
-                        jpTitle = document.QuerySelector("#gj").InnerHtml; //日文标题
-                        
+                        _enTitle = document.QuerySelector("#gn").InnerHtml; //英文标题
+                        _jpTitle = document.QuerySelector("#gj").InnerHtml; //日文标题
+                        _coverUrl = document.QuerySelector("#gd1 img").Attributes["src"].Value;//获取封面图片
+
                         var download =
                             document.QuerySelectorAll("#gd5 .g2 a")
                                 .FirstOrDefault(
@@ -164,22 +165,23 @@ namespace EHentai.uwp
                                         !x.InnerHtml.Contains("Torrent Download ( 0 )"));
                         if (download != null)
                         {
-                            torrentPageUrl = download.Attributes["onclick"].Value.Split('\'')[1];
+                            _torrentPageUrl = download.Attributes["onclick"].Value.Split('\'')[1];
                         }
-                        //CreateTask(() =>
-                        //{
-                        //    //获取封面图片
-                        //    string imgCache = CommonHepler.GetValidFileName(coverUrl) + ".jpg";
-                        //    while (!ImageCache.HasCache(imgCache))
-                        //    {
-                        //        var imgStream = Http.GetStream(coverUrl);
-                        //        ImageCache.CreateCache(imgCache, imgStream);
-                        //    }
-                        //    Dispatcher.BeginInvoke(new Action(() =>
-                        //    {
-                        //        CoverImage.Source = ImageCache.GetImage(imgCache);
-                        //    }));
-                        //});
+
+                        var trs = document.QuerySelectorAll("#taglist tr");
+                        foreach (var tr in trs)
+                        {
+                            TagModel tag = new TagModel();
+                            var td = tr.QuerySelectorAll("td");
+                            tag.TagName = td.First().InnerHtml;
+                            var divTags = td.Last().QuerySelectorAll("div");
+                            foreach (var div in divTags)
+                            {
+                                var a = div.QuerySelector("a");
+                                tag.TagValues.Add(a.InnerHtml, a.Attributes["href"].Value);
+                            }
+                            _tagList.Add(tag);
+                        }
                     }
                     else
                     {
@@ -200,7 +202,7 @@ namespace EHentai.uwp
                         model.Herf = element.FirstElementChild.Attributes["href"].Value;
                         model.CacheName = model.Herf.GetValidFileName() + ".jpg";
                         model.ImageUrl = img.Attributes["src"].Value;
-                        model.Height = ImageHeight;
+                        model.Height = _imageHeight;
 
                         datas.Add(model);
 
@@ -224,7 +226,7 @@ namespace EHentai.uwp
                 try
                 {
 
-                    var doc = GetHtmlDocument(torrentPageUrl).Result;
+                    var doc = GetHtmlDocument(_torrentPageUrl).Result;
 
                     var items = doc.QuerySelectorAll("table");
 
@@ -274,8 +276,11 @@ namespace EHentai.uwp
                             ImageListModel model = data.ToEntity<ImageListModel>();
                             PivotView.AddSelect(model.Title, new ListPage(model.Herf));
                             break;
+                        case "ToHomePage":
+                            PivotView.AddSelect("主页", new HomePage(data));
+                            break;
                         case "DownTorrent":
-                            var torrent = Torrents.First(x => x.DownUrl == data);
+                            var torrent = _torrents.First(x => x.DownUrl == data);
                             try
                             {
                                 var file = await Http.GetBtyeAsync(data);
@@ -286,8 +291,6 @@ namespace EHentai.uwp
                             {
                                 ShowWebViewToast(torrent.Name + "下载失败! 错误信息:" + ex.Message);
                             }
-
-
                             break;
                     }
                 }

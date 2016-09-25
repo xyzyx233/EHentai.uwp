@@ -124,6 +124,7 @@
     <Compile Include="Model\ImageListModel.cs" />
     <Compile Include="Model\ImageViewModel.cs" />
     <Compile Include="Model\Site.cs" />
+    <Compile Include="Model\TagModel.cs" />
     <Compile Include="Model\Torrent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

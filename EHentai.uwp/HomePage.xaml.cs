@@ -23,7 +23,7 @@ namespace EHentai.uwp
         private FilterModel filter = new FilterModel();
 
 
-        public HomePage(string url = null) : base(Site.HomeUrl)
+        public HomePage(string url = null) : base(GetHomeUrl(url))
         {
             if (url != null)
             {
@@ -47,24 +47,24 @@ namespace EHentai.uwp
             View.ScriptNotify += View_ScriptNotify;
         }
 
-        private void View_ScriptNotify(object sender, NotifyEventArgs e)
+        private static string GetHomeUrl(string url)
         {
-            if (!string.IsNullOrEmpty(e.Value))
+            string homeUrl= Site.HomeUrl;
+            if (!string.IsNullOrEmpty(url) && url.Contains("/tag/"))
             {
-                JObject jsonBody = JObject.Parse(e.Value);
-                string method = jsonBody["method"].ToString();
-                string data = jsonBody["data"].ToString();
-                switch (method)
-                {
-                    case "ToDetailPage":
-                        ImageListModel model = data.ToEntity<ImageListModel>();
-                        PivotView.AddSelect(model.Title, new DetailPage(model.Herf));
-                        break;
-                    case "Search":
-                        Search(data);
-                        break;
-                }
+                var urls = url.Split('/');
+                homeUrl = $"https://{urls[2]}/{urls[3]}/{urls[4]}";
             }
+            return homeUrl;
+        }
+
+        public override string GetNowPageUrl()
+        {
+            if (NowUrl.Contains("/tag/"))
+            {
+                return NowUrl + "/" + NowPageIndex;
+            }
+            return base.GetNowPageUrl();
         }
 
         public override async void LoadDataByPage()
@@ -183,7 +183,6 @@ namespace EHentai.uwp
             });
 
         }
-        
 
         private async void Search(string filer)
         {
@@ -206,5 +205,24 @@ namespace EHentai.uwp
             }
         }
 
+        private void View_ScriptNotify(object sender, NotifyEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Value))
+            {
+                JObject jsonBody = JObject.Parse(e.Value);
+                string method = jsonBody["method"].ToString();
+                string data = jsonBody["data"].ToString();
+                switch (method)
+                {
+                    case "ToDetailPage":
+                        ImageListModel model = data.ToEntity<ImageListModel>();
+                        PivotView.AddSelect(model.Title, new DetailPage(model.Herf));
+                        break;
+                    case "Search":
+                        Search(data);
+                        break;
+                }
+            }
+        }
     }
 }

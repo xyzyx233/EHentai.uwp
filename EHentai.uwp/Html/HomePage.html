@@ -30,42 +30,7 @@
 
     <script>
         imageWidth = 230;
-        app = angular.module('myApp', ['ngMaterial', 'ngAnimate']);
-
-        //设置图标
-        app.run(function ($templateCache) {
-            angular.forEach(assetMap, function (value, key) {
-                $templateCache.put(key, value);
-            });
-        });
-
-        app.directive('imageonload', function ($parse) {
-            return {
-                restrict: 'A',
-                link: function (scope, element, attrs) {
-                    var fn = $parse(attrs.imageonload);
-                    element.bind('load', function (event) {
-                        //scope.$apply(attrs.imageonload);
-                        scope.$apply(function () {
-                            fn(scope, { $event: event });
-                        });
-                    });
-                    element.bind('error', function () {
-                        //scope.$apply(attrs.imageonload);
-                        attrs.$$element[0].src = errorImage;
-                    });
-                }
-            };
-        });
-
-        app.config(function ($mdThemingProvider) {
-            $mdThemingProvider.theme('myTheme')
-                .primaryPalette('grey')
-                .accentPalette('blue')
-                .warnPalette('red');
-            $mdThemingProvider.alwaysWatchTheme(true);
-        });
-
+        
         app.controller('myCtrl', function ($scope, $mdSidenav, $mdDialog) {
             scope = $scope;
             $scope.theme = 'myTheme';
@@ -178,7 +143,7 @@
                                 <span style="font-size: 12px; text-align: center; width: 100%;">{{ele.Title}}<md-tooltip>{{ele.Title}}</md-tooltip></span>
                             </md-card-title>
                             <md-card-content style="padding: 0; height: 300px;">
-                                <img ng-src="{{ele.ImageUrl}}" style="width: 100%; max-height: 300px;" ng-show="{{ele.Visibility}}" ng-click="ToDetailPage($event ,ele)" imageonload="cacheImage($event ,ele);">
+                                <img ng-src="{{ele.ImageUrl}}" style="width: 100%; max-height: 300px;" class="animate-show" ng-show="{{ele.Visibility}}" ng-click="ToDetailPage($event ,ele)" imageonload="cacheImage($event ,ele);">
                             </md-card-content>
                         </md-card>
                     </div>
