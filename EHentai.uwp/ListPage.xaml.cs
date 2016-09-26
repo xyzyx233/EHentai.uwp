@@ -141,8 +141,28 @@ namespace EHentai.uwp
         /// <returns></returns>
         private int GetIndex()
         {
-            return nowShowIndex = (int)ImageScroll.VerticalOffset - 1;
- 
+            //return nowShowIndex = (int)ImageScroll.VerticalOffset - 1;
+            double dVer = ImageScroll.VerticalOffset;
+
+            var loadeds = ImageList.Where(x => x.ImageLoadState == EnumLoadState.Loaded && x.Height != null).ToList();
+
+            if (loadeds.Any())
+            {
+                double height = 0;
+                for (int i = 0; i < loadeds.Count; i++)
+                {
+                    if (dVer >= height && dVer < height + loadeds[i].Height.Value)
+                    {
+                        nowShowImageOffset = dVer - height;
+                        nowShowImageOffsetScale = nowShowImageOffset / loadeds[i].Height.Value;
+                        nowShowIndex = loadeds[i].Id;
+                        return nowShowIndex;
+                    }
+                    height += loadeds[i].Height.Value;
+                }
+            }
+
+            return 0;
         }
 
         /// <summary>
@@ -244,8 +264,14 @@ namespace EHentai.uwp
 
         private bool IsContinueLoad()
         {
-            //return ImageScroll.VerticalOffset % 50 <= 10;//普通容器时的判断逻辑(每滚动50高度加载数据)
-            return ImageScroll.VerticalOffset % 1 <= 0.2;//虚拟化容器时的判断逻辑(每滚动0.1高度加载数据)
+            return ImageScroll.VerticalOffset % 50 <= 10;//普通容器时的判断逻辑(每滚动50高度加载数据)
+            //return ImageScroll.VerticalOffset % 1 <= 0.2;//虚拟化容器时的判断逻辑(每滚动0.1高度加载数据)
+        }
+
+        private double GetNowShowImageHeight()
+        {
+            double countHeight = ImageList.Where(x => x.Id < nowShowIndex && x.Height != null).Sum(x => x.Height.Value);
+            return countHeight;
         }
 
         private void ImageScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
@@ -302,13 +328,14 @@ namespace EHentai.uwp
                     {
                         model.Height = img.ActualHeight;
 
-                        //使用虚拟化容器时采用以下方法设置滚动位置
-                        if (model.Order == EnumOrder.Prev && ImageList[model.Id].Order == EnumOrder.Center)
-                        {
-                            ImageScroll.ScrollToVerticalOffset(model.Id + 2);//当使用虚拟化容器时,第一次初始化高度为3
-                        }
+                        ////使用虚拟化容器时采用以下方法设置滚动位置
+                        //if (model.Order == EnumOrder.Prev && ImageList[model.Id].Order == EnumOrder.Center)
+                        //{
+                        //    ImageScroll.ScrollToVerticalOffset(model.Id + 2);//当使用虚拟化容器时,第一次初始化高度为3
+                        //}
 
-                        ////使用普通容器时采用以下方法初设置滚动位置
+                        //使用普通容器时采用以下方法初设置滚动位置
+                        ImageScroll.ScrollToVerticalOffset(GetNowShowImageHeight() + nowShowImageOffsetScale * img.ActualHeight);
                         //if (model.Order == EnumOrder.Prev)
                         //{
                         //    ImageScroll.ScrollToVerticalOffset(ImageScroll.VerticalOffset + img.ActualHeight);

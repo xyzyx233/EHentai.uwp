@@ -165,7 +165,7 @@ namespace EHentai.uwp
                             var a = div.FirstElementChild;
 
                             var img = a.FirstElementChild;
-                            model.Title = img.Attributes["title"].Value;
+                            model.Title = div.PreviousElementSibling.FirstElementChild.TextContent;
                             model.Herf = a.Attributes["href"].Value;
                             model.CacheName = model.Herf.GetValidFileName() + ".jpg";
                             model.ImageUrl = img.Attributes["src"].Value;

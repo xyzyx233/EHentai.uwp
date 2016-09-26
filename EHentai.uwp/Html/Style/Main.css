@@ -32,6 +32,20 @@ md-card {
     box-shadow: none !important;
 }
 
+label.chips {
+    cursor: default;
+    border-radius: 16px;
+    display: block;
+    /*height: 32px;*/
+    line-height: 32px;
+    margin: 8px 8px 0 0;
+    padding: 0 12px;
+    float: left;
+    box-sizing: border-box;
+    max-width: 100%;
+    position: relative;
+}
+
 /*图片显示动画*/
 .animate-show.ng-hide-add, .animate-show.ng-hide-remove {
     transition: all linear 0.5s;

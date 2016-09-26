@@ -46,7 +46,7 @@
             $scope.isLoading = true;
             $scope.hasTorrentDown = false;//是否可以下载种子文件
             $scope.ToListPage = function ($event, model) {
-                if ($event.target.src == errorImage) {
+                if (!$event.target.complete || $event.target.src == errorImage) {
                     $event.target.src = model.ImageUrl;
                 } else {
                     model.Title = scope.enTitle;
@@ -185,10 +185,11 @@
                         <table style="width: 100%;" ng-repeat="tag in tagList">
                             <tr>
                                 <td class="tc" style="width: 100px;">{{tag.TagName}}</td>
-                                <td  >
-                                    <md-chips ng-repeat="(name,value) in tag.TagValues">
+                                <td>
+                                    <label ng-repeat="(name,value) in tag.TagValues" md-colors="{background: 'Pink-300'}" ng-click="ToHomePage(value);" class="chips">{{name}}</label>
+                                    <!--<md-chips ng-repeat="(name,value) in tag.TagValues">
                                         <md-chip md-colors="{background: 'Pink-300'}" ng-click="ToHomePage(value);">{{name}}</md-chip>
-                                    </md-chips>
+                                    </md-chips>-->
                                 </td>
                             </tr>
                         </table>
@@ -208,7 +209,7 @@
                 <div id="divImageList" style="margin: 0 auto;">
                     <div class="ImageList" style="width: 220px;" ng-repeat="ele in ImageList">
                         <md-card ng-style="{'min-height': {{ele.Height}}+'px'}" style="position: relative;">
-                            <img ng-src="{{ele.ImageUrl}}" class="animate-show" ng-click="ToListPage($event,ele)" style="width: 100%; max-height: 400px">
+                            <img ng-src="{{ele.ImageUrl}}" class="animate-show" ng-click="ToListPage($event,ele)" style="width: 100%; max-height: 400px" imageonload="cacheImage($event ,ele);">
                             <span style="font-size: 12px; text-align: center; width: 100%; position: absolute; bottom: 0; opacity: 0.3; background-color: black; color: white;">{{ele.Index}}</span>
                         </md-card>
                     </div>

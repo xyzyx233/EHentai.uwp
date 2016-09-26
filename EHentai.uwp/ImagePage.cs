@@ -108,11 +108,8 @@ namespace EHentai.uwp
             Tasks = new List<Task>();
             ImageList = new ObservableCollection<ImageListModel>();
             View = new WebView(WebViewExecutionMode.SameThread);
-
-            //// 开启集合的异步访问支持
-            //BindingOperations.EnableCollectionSynchronization(ImageList, _imageListLock);
-
-
+            
+            
             //初始化事件
             Loaded += ImagePage_Loaded;
             Unloaded += ImagePage_Unloaded;

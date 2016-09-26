@@ -43,7 +43,7 @@
                 }
             };
             $scope.ToDetailPage = function ($event, model) {
-                if ($event.target.src == errorImage) {
+                if (!$event.target.complete || $event.target.src == errorImage) {
                     $event.target.src = model.ImageUrl;
                 } else {
                     var data = { method: 'ToDetailPage', data: model };
