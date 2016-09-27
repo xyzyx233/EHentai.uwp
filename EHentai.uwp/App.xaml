@@ -11,6 +11,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesign.xaml" />
                 <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesignColor.Indigo.Named.xaml" />
+                <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesignColor.Blue.Named.xaml" />
+                <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesignColor.LightBlue.Named.xaml" />
                 <ResourceDictionary Source="ms-appx:///Uwp.Control/Resource/PivotTemplate.xaml"/>
                 <ResourceDictionary Source="ms-appx:///Uwp.Control/Resource/ListBoxTemplate.xaml"/>
                 <ResourceDictionary Source="ms-appx:///Uwp.Control/Resource/Icon.xaml"/>
@@ -19,8 +21,9 @@
 
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{StaticResource IndigoPrimary900}"/>
-                    <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="{StaticResource IndigoPrimary300Foreground}"/>
+                    <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{StaticResource BluePrimary500}"/>
+                    <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="{StaticResource  BluePrimary500Foreground}"/>
+                    <SolidColorBrush x:Key="PrimaryUnSelectedForegroundBrush" Color="#b9b9b9"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 

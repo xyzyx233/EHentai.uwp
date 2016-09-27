@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using System.Text.RegularExpressions;
+using Windows.UI;
 using Newtonsoft.Json;
 
 namespace Uwp.Common.Extend
@@ -68,6 +70,20 @@ namespace Uwp.Common.Extend
         {
             return WebUtility.HtmlDecode(value);
         }
-        
+
+        /// <summary>
+        /// 将颜色代码转为Color
+        /// </summary>
+        /// <param name="hexColor">16进制颜色代码</param>
+        /// <returns></returns>
+        public static Color GetColor(this string hexColor)
+        {
+            hexColor = hexColor.Replace("#", string.Empty);
+            byte r = byte.Parse(hexColor.Substring(0, 2), NumberStyles.HexNumber);
+            byte g = byte.Parse(hexColor.Substring(2, 2), NumberStyles.HexNumber);
+            byte b = byte.Parse(hexColor.Substring(4, 2), NumberStyles.HexNumber);
+
+            return Color.FromArgb(1, r, g, b);
+        }
     }
 }

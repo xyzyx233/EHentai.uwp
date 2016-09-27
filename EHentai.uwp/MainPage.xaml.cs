@@ -5,12 +5,14 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.UI;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 using EHentai.uwp.Common;
 using Uwp.Common;
+using Uwp.Common.Extend;
 using Uwp.Control.Model;
 
 //“空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409 上有介绍
@@ -26,7 +28,8 @@ namespace EHentai.uwp
 
         public MainPage()
         {
-
+            var appView = ApplicationView.GetForCurrentView();
+            appView.TitleBar.ButtonBackgroundColor = appView.TitleBar.InactiveBackgroundColor = appView.TitleBar.ButtonInactiveBackgroundColor = appView.TitleBar.BackgroundColor = "#2196f3".GetColor();
             //ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
             ApplicationView.PreferredLaunchViewSize = new Size(ScreenResolution.Width * 0.85, ScreenResolution.Height * 0.85);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
@@ -52,7 +55,7 @@ namespace EHentai.uwp
             //    Site.Login();
             //}
 
-             
+
         }
 
         private void User_OnLogined(object sender, EventArgs e)

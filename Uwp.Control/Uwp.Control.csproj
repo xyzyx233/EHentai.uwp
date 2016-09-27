@@ -133,6 +133,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\开发框架\C#\uwp\MaterialDesign\MaterialDesignThemes\MaterialDesignThemes.csproj">
+      <Project>{727dc0b8-eb04-41a2-a301-e660ace07f55}</Project>
+      <Name>MaterialDesignThemes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Uwp.Common\Uwp.Common.csproj">
       <Project>{01BCB284-B457-469A-9B4C-592F6A4C0635}</Project>
       <Name>Uwp.Common</Name>
