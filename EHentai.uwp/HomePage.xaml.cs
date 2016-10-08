@@ -21,6 +21,7 @@ namespace EHentai.uwp
     public sealed partial class HomePage : ImagePage
     {
         private readonly FilterModel filter = new FilterModel();
+        private string f_search = "";
 
         public HomePage(string url = null) : base(GetHomeUrl(url))
         {
@@ -48,7 +49,7 @@ namespace EHentai.uwp
 
         private static string GetHomeUrl(string url)
         {
-            string homeUrl= Site.HomeUrl;
+            string homeUrl = Site.HomeUrl;
             if (!string.IsNullOrEmpty(url) && url.Contains("/tag/"))
             {
                 var urls = url.Split('/');
@@ -61,7 +62,7 @@ namespace EHentai.uwp
         {
             if (NowUrl.Contains("/tag/"))
             {
-                return NowUrl + "/" + NowPageIndex;
+                return NowUrl + "/" + (NowPageIndex - 1);
             }
             return base.GetNowPageUrl();
         }
@@ -72,8 +73,31 @@ namespace EHentai.uwp
 
             try
             {
+                IHtmlDocument document = await GetHtmlDocument(); //当前页html对象
+
+                if (IsFirst)
+                {
+                    //总记录数量
+                    var countStr = document.QuerySelector(".ip").InnerHtml.Split(' ');
+                    ImageCount = int.Parse(countStr[countStr.Length - 1].Replace(",", ""));
+
+                    //总页数
+                    string pageMax = document.QuerySelectorAll(".ptt tr td").Last().PreviousElementSibling.FirstElementChild.InnerHtml;
+                    PageMax = pageMax.ToInt() - 1;
+
+                    var search = document.QuerySelector("input[name=\"f_search\"]");
+
+
+                    if (search.GetAttribute("value") != null)
+                    {
+                        f_search = search.OuterHtml.GetValue("value=\"", "\" class").Replace("=", "").Replace(" ", "").Replace("\"\"", " ").Replace("$ \"", "$\"");
+                        string js = $"$(\"#txtSearch\").val('{f_search}');$(\"#txtSearch\").focus();";
+                        await View.InvokeScriptAsync("eval", new[] { js });
+                    }
+
+                }
                 //获取当前页的数据
-                var datas = await GetNowPageData();
+                var datas = await GetNowPageData(document);
                 ShowData(datas);
             }
             catch (Exception ex)
@@ -107,7 +131,7 @@ namespace EHentai.uwp
                     IsFirst = false;
                     IsLoadNextPage = true;
 
-                    datas = await GetNowPageData();
+                    datas = await GetNowPageData(await GetHtmlDocument());
                     ShowData(datas);
                 }
             }
@@ -121,56 +145,36 @@ namespace EHentai.uwp
         /// 获取当前页的数据
         /// </summary>
         /// <returns></returns>
-        private async Task<ObservableCollection<ImageListModel>> GetNowPageData()
+        private async Task<ObservableCollection<ImageListModel>> GetNowPageData(IHtmlDocument document)
         {
             return await Task.Run(() =>
             {
                 ObservableCollection<ImageListModel> datas = new ObservableCollection<ImageListModel>();
                 try
                 {
-                    IHtmlDocument document; //当前页html对象
-
-                    if (IsFirst)
+                    if (!IsLoaded)
                     {
-                        //获取html对象
-                        document = GetHtmlDocument().Result;
+                        var divs = document.QuerySelectorAll(".id3");
 
-                        //总记录数量
-                        var countStr = document.QuerySelector(".ip").InnerHtml.Split(' ');
-                        ImageCount = int.Parse(countStr[countStr.Length - 1].Replace(",", ""));
-
-                        //总页数
-                        string pageMax = document.QuerySelectorAll(".ptt tr td").Last().PreviousElementSibling.FirstElementChild.InnerHtml;
-                        PageMax = pageMax.ToInt() - 1;
-
-                    }
-                    else
-                    {
-                        if (!IsLoaded)
-                            document = GetHtmlDocument().Result;
-                        else
-                            return datas;
-                    }
-
-                    var divs = document.QuerySelectorAll(".id3");
-
-                    if (divs!=null&& divs.Any())
-                    {
-                        foreach (var div in divs)
+                        if (divs != null && divs.Any())
                         {
-                            ImageListModel model = new ImageListModel();
+                            foreach (var div in divs)
+                            {
+                                ImageListModel model = new ImageListModel();
 
-                            //model.GetImageUrl += ModelGetImageUrl;
-                            var a = div.FirstElementChild;
+                                //model.GetImageUrl += ModelGetImageUrl;
+                                var a = div.FirstElementChild;
 
-                            var img = a.FirstElementChild;
-                            model.Title = div.PreviousElementSibling.FirstElementChild.TextContent;
-                            model.Herf = a.Attributes["href"].Value;
-                            model.CacheName = model.Herf.GetValidFileName() + ".jpg";
-                            model.ImageUrl = img.Attributes["src"].Value;
-                            datas.Add(model);
+                                var img = a.FirstElementChild;
+                                model.Title = div.PreviousElementSibling.FirstElementChild.TextContent;
+                                model.Herf = a.Attributes["href"].Value;
+                                model.CacheName = model.Herf.GetValidFileName() + ".jpg";
+                                model.ImageUrl = img.Attributes["src"].Value;
+                                datas.Add(model);
+                            }
                         }
                     }
+
                 }
                 catch (Exception ex)
                 {
