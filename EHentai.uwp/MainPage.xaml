@@ -7,9 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" AllowDrop="True" Drop="MainPage_OnDrop" DragOver="MainPage_OnDragOver">
 
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" >
         <Button x:Name="hideButton" Width="100" Style="{StaticResource MaterialDesignRaisedLightButton}" Opacity="0">LIGHT</Button>
-        <Pivot x:Name="MainPivot" SelectedIndex="{Binding SelectedIndex,Mode=TwoWay}" ItemsSource="{Binding Contents}" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+        <Pivot x:Name="MainPivot" SelectedIndex="{Binding SelectedIndex,Mode=TwoWay}" ItemsSource="{Binding Contents}" >
             <Pivot.HeaderTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Header}" FontSize="15" VerticalAlignment="Center"/>

@@ -8,6 +8,7 @@
         <ResourceDictionary Source="Icon.xaml"/>
         <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesignColor.Blue.Named.xaml" />
         <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesignColor.LightBlue.Named.xaml" />
+        <ResourceDictionary Source="ms-appx:///MaterialDesignThemes/Themes/MaterialDesignColor.Pink.Named.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <ResourceDictionary.ThemeDictionaries>
@@ -15,6 +16,7 @@
             <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{StaticResource BluePrimary500}"/>
             <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="{StaticResource  BluePrimary500Foreground}"/>
             <SolidColorBrush x:Key="PrimaryUnSelectedForegroundBrush" Color="#b9b9b9"/>
+            <SolidColorBrush x:Key="PrimaryPink" Color="{StaticResource PinkAccent100}"></SolidColorBrush>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
@@ -338,7 +340,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="PivotHeaderItem">
-                    <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                    <Grid x:Name="Grid" Background="{TemplateBinding Background}" BorderThickness="0,0,0,3">
                         <Grid.Resources>
                             <Style x:Key="BaseContentPresenterStyle" TargetType="ContentPresenter">
                                 <Setter Property="FontFamily" Value="XamlAutoFontFamily"/>
@@ -390,6 +392,10 @@
                                                Storyboard.TargetProperty="Background" >
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightTransparentBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Grid"
+                                               Storyboard.TargetProperty="BorderBrush" >
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource PrimaryPink}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="UnselectedPointerOver">
@@ -413,6 +419,10 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Grid"
                                                Storyboard.TargetProperty="Background" >
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightTransparentBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Grid"
+                                               Storyboard.TargetProperty="BorderBrush" >
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource PrimaryPink}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -463,7 +473,6 @@
                             </ContentPresenter>
                             <Button x:Name="CloseButton" Style="{StaticResource CloseHoverButton}" Width="20" Height="20" Click="CloseButton_OnClick"></Button>
                         </StackPanel>
-
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

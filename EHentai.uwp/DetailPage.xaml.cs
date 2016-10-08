@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Media.Imaging;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
 using AngleSharp.Dom.Html;
+using AngleSharp.Parser.Html;
 using EHentai.uwp.Common;
 using Newtonsoft.Json.Linq;
 using Uwp.Common;
@@ -52,17 +53,21 @@ namespace EHentai.uwp
         {
             try
             {
+                IHtmlDocument document = await GetHtmlDocument();
                 //获取当前页的数据
-                var datas = await GetNowPageData();
+                var datas = await GetNowPageData(document);
 
-                if (IsFirst && !string.IsNullOrEmpty(_torrentPageUrl))
+                if (IsFirst)
                 {
-                    try
+                    InitData(document);
+                    if (!string.IsNullOrEmpty(_torrentPageUrl))
                     {
-                        GetDown();
-                    }
-                    catch (Exception ex)
-                    {
+                        try
+                        {
+                            GetDown();
+                        }
+                        catch (Exception ex)
+                        { }
                     }
                 }
 
@@ -72,6 +77,50 @@ namespace EHentai.uwp
             {
                 IsLoadNextPage = false;
                 ShowMessage(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 初始化数据(标题,总页数等其它信息)
+        /// </summary>
+        /// <param name="document"></param>
+        public void InitData(IHtmlDocument document)
+        {
+            ImageCount =
+                          int.Parse(
+                              document.QuerySelectorAll(".gdt1")
+                                  .First(x => x.InnerHtml == "Length:")
+                                  .NextElementSibling.InnerHtml.Split(' ')[0]);
+            _imageHeight = int.Parse(document.QuerySelector(".gdtl").Attributes["style"].Value.Split(':')[1].Replace("px", "")) - 20;
+
+            _enTitle = document.QuerySelector("#gn").InnerHtml; //英文标题
+            _jpTitle = document.QuerySelector("#gj").InnerHtml; //日文标题
+            _coverUrl = document.QuerySelector("#gd1 img").Attributes["src"].Value;//获取封面图片
+
+            var download =
+                document.QuerySelectorAll("#gd5 .g2 a")
+                    .FirstOrDefault(
+                        x =>
+                            x.InnerHtml.Contains("Torrent Download") &&
+                            !x.InnerHtml.Contains("Torrent Download ( 0 )"));
+            if (download != null)
+            {
+                _torrentPageUrl = download.Attributes["onclick"].Value.Split('\'')[1];
+            }
+
+            var trs = document.QuerySelectorAll("#taglist tr");
+            foreach (var tr in trs)
+            {
+                TagModel tag = new TagModel();
+                var td = tr.QuerySelectorAll("td");
+                tag.TagName = td.First().InnerHtml;
+                var divTags = td.Last().QuerySelectorAll("div");
+                foreach (var div in divTags)
+                {
+                    var a = div.QuerySelector("a");
+                    tag.TagValues.Add(a.InnerHtml, a.Attributes["href"].Value);
+                }
+                _tagList.Add(tag);
             }
         }
 
@@ -101,9 +150,8 @@ namespace EHentai.uwp
                 if (IsFirst)
                 {
                     //设置标题
-                    js = $"scope.enTitle='{_enTitle.Replace("'", "\\'")}'; scope.jpTitle='{_jpTitle.Replace("'", "\\'")}'; scope.coverUrl='{_coverUrl}'; scope.tagList ={_tagList.ToJsonString()}; scope.$apply();";
+                    js = $"scope.enTitle='{_enTitle.Replace("'", "\\'").HtmlDecode()}'; scope.jpTitle='{_jpTitle.Replace("'", "\\'").HtmlDecode()}'; scope.coverUrl='{_coverUrl}'; scope.tagList ={_tagList.ToJsonString()}; scope.$apply();";
                     await View.InvokeScriptAsync("eval", new[] { js });
-
                 }
                 IsLoadNextPage = false;
 
@@ -123,7 +171,8 @@ namespace EHentai.uwp
                     IsFirst = false;
                     IsLoadNextPage = true;
 
-                    datas = await GetNowPageData();
+
+                    datas = await GetNowPageData(await GetHtmlDocument());
                     ShowData(datas);
                 }
             }
@@ -133,64 +182,13 @@ namespace EHentai.uwp
             }
         }
 
-        private async Task<ObservableCollection<ImageListModel>> GetNowPageData()
+        private async Task<ObservableCollection<ImageListModel>> GetNowPageData(IHtmlDocument document)
         {
             return await Task.Run(() =>
             {
                 ObservableCollection<ImageListModel> datas = new ObservableCollection<ImageListModel>();
                 try
                 {
-                    IHtmlDocument document; //当前页html对象
-
-                    if (IsFirst)
-                    {
-                        document = GetHtmlDocument().Result;
-
-                        ImageCount =
-                            int.Parse(
-                                document.QuerySelectorAll(".gdt1")
-                                    .First(x => x.InnerHtml == "Length:")
-                                    .NextElementSibling.InnerHtml.Split(' ')[0]);
-                        _imageHeight = int.Parse(document.QuerySelector(".gdtl").Attributes["style"].Value.Split(':')[1].Replace("px", "")) - 20;
-
-                        _enTitle = document.QuerySelector("#gn").InnerHtml; //英文标题
-                        _jpTitle = document.QuerySelector("#gj").InnerHtml; //日文标题
-                        _coverUrl = document.QuerySelector("#gd1 img").Attributes["src"].Value;//获取封面图片
-
-                        var download =
-                            document.QuerySelectorAll("#gd5 .g2 a")
-                                .FirstOrDefault(
-                                    x =>
-                                        x.InnerHtml.Contains("Torrent Download") &&
-                                        !x.InnerHtml.Contains("Torrent Download ( 0 )"));
-                        if (download != null)
-                        {
-                            _torrentPageUrl = download.Attributes["onclick"].Value.Split('\'')[1];
-                        }
-
-                        var trs = document.QuerySelectorAll("#taglist tr");
-                        foreach (var tr in trs)
-                        {
-                            TagModel tag = new TagModel();
-                            var td = tr.QuerySelectorAll("td");
-                            tag.TagName = td.First().InnerHtml;
-                            var divTags = td.Last().QuerySelectorAll("div");
-                            foreach (var div in divTags)
-                            {
-                                var a = div.QuerySelector("a");
-                                tag.TagValues.Add(a.InnerHtml, a.Attributes["href"].Value);
-                            }
-                            _tagList.Add(tag);
-                        }
-                    }
-                    else
-                    {
-                        if (!IsLoaded)
-                            document = GetHtmlDocument().Result;
-                        else
-                            return datas;
-                    }
-
                     var divs = document.QuerySelectorAll("#gdt .gdtl");
                     foreach (var element in divs)
                     {
@@ -199,6 +197,7 @@ namespace EHentai.uwp
                         var model = new ImageListModel();
                         //model.GetImageUrl += ModelGetImageUrl; 
                         model.Index = img.Attributes["alt"].Value;
+                        model.Id = model.Index.ToInt();
                         model.Herf = element.FirstElementChild.Attributes["href"].Value;
                         model.CacheName = model.Herf.GetValidFileName() + ".jpg";
                         model.ImageUrl = img.Attributes["src"].Value;
@@ -274,7 +273,7 @@ namespace EHentai.uwp
                     {
                         case "ToListPage":
                             ImageListModel model = data.ToEntity<ImageListModel>();
-                            PivotView.AddSelect(model.Title, new ListPage(model.Herf));
+                            PivotView.AddSelect(model.Title, new ListPage(model.Id, NowUrl, ImageCount));
                             break;
                         case "ToHomePage":
                             PivotView.AddSelect("主页", new HomePage(data));

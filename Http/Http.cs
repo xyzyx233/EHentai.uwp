@@ -23,7 +23,7 @@ namespace Uwp.Http
         public HttpClient Client { get; set; }
 
         //public CookieContainer Cookie { get; set; }
-        public static string Cookie = "igneous=61ba9adb4afe5133cacfbddcd2d8c2d11a92fa8a67ce1d9520d446bf0bad49cf5339d22d0523b3416dda8974f8645a73dec6e02bb075041f94293d44c9715dcd;ipb_member_id=1298700;ipb_pass_hash=cb10b3075674d6c425540fb646d05368;s=da3296d6b925660005f6de90009e14ac766829153dc29435737c8fa76b8458c13b8566f81206b184588ffb7920ad9edce1fe5d636224dcebbad69c7f894798e7;uconfig=uh_y-rc_0-cats_0-xns_0-ts_l-tr_2-prn_y-dm_t-ar_0-rx_0-ry_0-ms_n-mt_n-cs_a-to_a-pn_0-sc_0-lt_m-tl_r-fs_p-ru_rrggb-xr_a-sa_y-oi_n-qb_n-tf_n-hh_-hp_-hk_-xl_;lv=1472484578-1473147290;";
+        public static string Cookie = "igneous=61ba9adb4afe5133cacfbddcd2d8c2d11a92fa8a67ce1d9520d446bf0bad49cf5339d22d0523b3416dda8974f8645a73dec6e02bb075041f94293d44c9715dcd;ipb_member_id=1298700;ipb_pass_hash=cb10b3075674d6c425540fb646d05368;s=da3296d6b925660005f6de90009e14ac766829153dc29435737c8fa76b8458c13b8566f81206b184588ffb7920ad9edce1fe5d636224dcebbad69c7f894798e7;uconfig=uh_y-rc_0-cats_0-xns_0-ts_l-tr_2-prn_y-dm_t-ar_0-rx_0-ry_0-ms_n-mt_n-cs_a-to_a-pn_0-sc_0-lt_m-tl_r-fs_p-ru_rrggb-xr_a-sa_y-oi_n-qb_n-tf_n-hh_-hp_-hk_-xl_;lv=1475394535-1475745879;";
         #endregion
 
         public event EventHandler<OnCompletedEventArgs> OnCompleted; //完成事件

@@ -51,7 +51,7 @@ namespace EHentai.uwp.Model
         }
 
         [JsonIgnore]
-        public CancellationTokenSource IsCance { get; } = new CancellationTokenSource();
+        public CancellationTokenSource IsCance { get; private set; } = new CancellationTokenSource();
 
         public string CacheName { get; set; }
 
@@ -79,6 +79,11 @@ namespace EHentai.uwp.Model
         public void OnLoaded()
         {
             Loaded?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void ReLoad()
+        {
+            IsCance = new CancellationTokenSource();
         }
     }
 

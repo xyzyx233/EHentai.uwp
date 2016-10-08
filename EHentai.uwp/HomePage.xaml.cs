@@ -20,8 +20,7 @@ namespace EHentai.uwp
     /// </summary>
     public sealed partial class HomePage : ImagePage
     {
-        private FilterModel filter = new FilterModel();
-
+        private readonly FilterModel filter = new FilterModel();
 
         public HomePage(string url = null) : base(GetHomeUrl(url))
         {
@@ -172,14 +171,12 @@ namespace EHentai.uwp
                             datas.Add(model);
                         }
                     }
-                   
-
-                    return datas;
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    //throw ex;
                 }
+                return datas;
             });
 
         }

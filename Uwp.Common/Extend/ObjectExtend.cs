@@ -14,5 +14,10 @@ namespace Uwp.Common.Extend
             string json = JsonConvert.SerializeObject(value);
             return string.IsNullOrEmpty(json) ? "null" : json;
         }
+
+        public static T DeepCopy<T>(this object value)
+        {
+            return JsonConvert.DeserializeObject<T>(value.ToJsonString());
+        }
     }
 }

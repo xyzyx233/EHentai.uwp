@@ -108,8 +108,8 @@ namespace EHentai.uwp
             Tasks = new List<Task>();
             ImageList = new ObservableCollection<ImageListModel>();
             View = new WebView(WebViewExecutionMode.SameThread);
-            
-            
+
+
             //初始化事件
             Loaded += ImagePage_Loaded;
             Unloaded += ImagePage_Unloaded;
@@ -171,35 +171,13 @@ namespace EHentai.uwp
                     item.Image = img;
                     item.ImageLoadState = EnumLoadState.Loaded;
                     item.OnLoaded();
-
-                    //item.Src = ImageCache.GetImageBase64(item.CacheName);
-                    //await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
-                    //{
-                    //    try
-                    //    {
-                    //        BitmapImage img = await ImageCache.HasCache(item.CacheName) ? await ImageCache.GetImage(item.CacheName) : ImageCache.ErrorImage;
-
-                    //        if (img == null)
-                    //        {
-                    //            item.Image = ImageCache.ErrorImage;
-                    //        }
-
-                    //        item.Image = img;
-                    //        item.ImageLoadState = EnumLoadState.Loaded;
-                    //        item.OnLoaded();
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //        throw ex;
-                    //    }
-                    //});
                 }
 
             }
             catch (Exception ex)
             { }
         }
-        
+
         /// <summary>
         /// 滚动翻页
         /// </summary>
@@ -215,7 +193,19 @@ namespace EHentai.uwp
 
         private void ImagePage_Unloaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            ImageList = null;
+            try
+            {
+                if (ImageList != null && ImageList.Any())
+                {
+                    foreach (var model in ImageList.Where(x => x.IsCance != null))
+                    {
+                        model.IsCance.Cancel();
+                    }
+                }
+                ImageList = null;
+            }
+            catch (Exception ex)
+            { }
         }
 
         private void ImagePage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
