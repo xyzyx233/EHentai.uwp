@@ -7,7 +7,6 @@ using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using AngleSharp.Dom.Html;
-using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using Uwp.Common.Extend;
 

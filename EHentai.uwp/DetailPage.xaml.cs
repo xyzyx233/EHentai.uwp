@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using EHentai.uwp.Model;
 using System.Collections.ObjectModel;
-using HtmlAgilityPack;
 using System.Threading.Tasks;
 using System.Linq;
 using Windows.ApplicationModel.DataTransfer;

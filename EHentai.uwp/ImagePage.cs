@@ -16,7 +16,6 @@ using Windows.UI.Xaml.Media.Imaging;
 using AngleSharp;
 using AngleSharp.Dom.Html;
 using AngleSharp.Parser.Html;
-using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using Uwp.Common;
 using Uwp.Common.Extend;
